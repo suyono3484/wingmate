@@ -1,0 +1,4 @@
+{
+  "name": "Golang Dev",
+  "image": "golang:1.21-bookworm"
+}
