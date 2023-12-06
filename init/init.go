@@ -1,8 +1,10 @@
 package init
 
 import (
-	"gitea.suyono.dev/suyono/wingmate"
 	"sync"
+	"time"
+
+	"gitea.suyono.dev/suyono/wingmate"
 )
 
 type Path interface {
@@ -30,6 +32,7 @@ type Cron interface {
 	Month() CronTimeSpec
 	DayOfWeek() CronTimeSpec
 	Command() Path
+	TimeToRun(time.Time) bool
 }
 
 type Config interface {
@@ -59,22 +62,19 @@ func (i *Init) Start() {
 
 	wg = &sync.WaitGroup{}
 	wg.Add(1)
+	go i.waiter(wg, signalTrigger, sighandlerExit)
+
+	wg.Add(1)
 	go i.sighandler(wg, signalTrigger, sighandlerExit)
 
 	for _, s := range i.config.Services() {
 		wg.Add(1)
-		go func(p Path) {
-			for {
-				if err := i.service(wg, p); err != nil {
-					wingmate.Log().Error().Msgf("starting service %s error %#v", p.Path(), err)
-				}
-			}
-		}(s)
+		go i.service(wg, s, signalTrigger)
 	}
 
 	for _, c := range i.config.Cron() {
 		wg.Add(1)
-		go i.cron(wg, c)
+		go i.cron(wg, c, signalTrigger)
 	}
 	wg.Wait()
 }

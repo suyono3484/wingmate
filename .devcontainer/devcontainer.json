@@ -1,4 +1,11 @@
 {
   "name": "Golang Dev",
-  "image": "golang:1.21-bookworm"
+  "image": "golang-dev:1.21-bookworm-user",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go"
+      ]
+    }
+  }
 }
