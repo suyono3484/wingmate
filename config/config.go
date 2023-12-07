@@ -18,8 +18,8 @@ const (
 )
 
 type Config struct {
-	servicePaths []string
-	cron         []*cron
+	ServicePaths []string
+	Cron         []*Cron
 }
 
 func Read() (*Config, error) {
@@ -33,14 +33,14 @@ func Read() (*Config, error) {
 		svcdir           string
 		serviceAvailable bool
 		cronAvailable    bool
-		cron             []*cron
+		cron             []*Cron
 		crontabfile      string
 	)
 
 	serviceAvailable = false
 	cronAvailable = false
 	outConfig := &Config{
-		servicePaths: make([]string, 0),
+		ServicePaths: make([]string, 0),
 	}
 	configPath := viper.GetString(EnvConfigPath)
 	svcdir = filepath.Join(configPath, ServiceDirName)
@@ -49,7 +49,7 @@ func Read() (*Config, error) {
 		for _, d := range dirent {
 			if d.Type().IsRegular() {
 				serviceAvailable = true
-				outConfig.servicePaths = append(outConfig.servicePaths, filepath.Join(svcdir, d.Name()))
+				outConfig.ServicePaths = append(outConfig.ServicePaths, filepath.Join(svcdir, d.Name()))
 			}
 		}
 	}
@@ -60,7 +60,7 @@ func Read() (*Config, error) {
 	crontabfile = filepath.Join(configPath, CrontabFileName)
 	cron, err = readCrontab(crontabfile)
 	if len(cron) > 0 {
-		outConfig.cron = cron
+		outConfig.Cron = cron
 		cronAvailable = true
 	}
 	if err != nil {

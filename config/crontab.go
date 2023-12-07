@@ -36,7 +36,7 @@ type CronTimeSpec interface {
 // 	DayOfWeek() CronTimeSpec
 // }
 
-type cron struct {
+type Cron struct {
 	minute  CronTimeSpec
 	hour    CronTimeSpec
 	dom     CronTimeSpec
@@ -60,7 +60,7 @@ const (
 	dow
 )
 
-func readCrontab(path string) ([]*cron, error) {
+func readCrontab(path string) ([]*Cron, error) {
 	var (
 		file    *os.File
 		err     error
@@ -68,7 +68,7 @@ func readCrontab(path string) ([]*cron, error) {
 		line    string
 		re      *regexp.Regexp
 		parts   []string
-		retval  []*cron
+		retval  []*Cron
 	)
 
 	if re, err = regexp.Compile(CrontabEntryRegex); err != nil {
@@ -82,7 +82,7 @@ func readCrontab(path string) ([]*cron, error) {
 		_ = file.Close()
 	}()
 
-	retval = make([]*cron, 0)
+	retval = make([]*Cron, 0)
 	scanner = bufio.NewScanner(file)
 	for scanner.Scan() {
 		line = scanner.Text()
@@ -93,7 +93,7 @@ func readCrontab(path string) ([]*cron, error) {
 			continue
 		}
 
-		c := &cron{
+		c := &Cron{
 			hasRun: false,
 		}
 		if err = c.setField(minute, parts[1]); err != nil {
@@ -129,7 +129,11 @@ func readCrontab(path string) ([]*cron, error) {
 	return retval, nil
 }
 
-func (c *cron) TimeToRun(now time.Time) bool {
+func (c *Cron) Command() string {
+	return c.command
+}
+
+func (c *Cron) TimeToRun(now time.Time) bool {
 	if !c.hasRun {
 		c.lastRun = now
 		c.hasRun = true
@@ -169,7 +173,7 @@ func (f *fieldRange) valid(u uint8) bool {
 	return i >= f.min && i <= f.max
 }
 
-func (c *cron) setField(field cronField, input string) error {
+func (c *Cron) setField(field cronField, input string) error {
 	var (
 		fr       *fieldRange
 		cField   *CronTimeSpec
