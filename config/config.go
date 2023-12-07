@@ -19,9 +19,8 @@ const (
 
 type Config struct {
 	servicePaths []string
+	cron         []*cron
 }
-
-type cron struct{}
 
 func Read() (*Config, error) {
 	viper.SetEnvPrefix(EnvPrefix)
@@ -34,7 +33,7 @@ func Read() (*Config, error) {
 		svcdir           string
 		serviceAvailable bool
 		cronAvailable    bool
-		cron             []cron
+		cron             []*cron
 		crontabfile      string
 	)
 
@@ -61,6 +60,7 @@ func Read() (*Config, error) {
 	crontabfile = filepath.Join(configPath, CrontabFileName)
 	cron, err = readCrontab(crontabfile)
 	if len(cron) > 0 {
+		outConfig.cron = cron
 		cronAvailable = true
 	}
 	if err != nil {

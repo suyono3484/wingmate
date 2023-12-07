@@ -3,34 +3,13 @@ package init
 import (
 	"sync"
 	"time"
-
-	"gitea.suyono.dev/suyono/wingmate"
 )
 
 type Path interface {
 	Path() string
 }
 
-type CronExactSpec interface {
-	CronTimeSpec
-	Value() uint8
-}
-
-type CronMultipleOccurrenceSpec interface {
-	CronTimeSpec
-	MultipleValues() []uint8
-}
-
-type CronTimeSpec interface {
-	Type() wingmate.CronTimeType
-}
-
 type Cron interface {
-	Minute() CronTimeSpec
-	Hour() CronTimeSpec
-	DayOfMonth() CronTimeSpec
-	Month() CronTimeSpec
-	DayOfWeek() CronTimeSpec
 	Command() Path
 	TimeToRun(time.Time) bool
 }
