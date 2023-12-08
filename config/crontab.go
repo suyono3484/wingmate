@@ -28,14 +28,6 @@ type CronTimeSpec interface {
 	Match(uint8) bool
 }
 
-// type Cron interface {
-// 	Minute() CronTimeSpec
-// 	Hour() CronTimeSpec
-// 	DayOfMonth() CronTimeSpec
-// 	Month() CronTimeSpec
-// 	DayOfWeek() CronTimeSpec
-// }
-
 type Cron struct {
 	minute  CronTimeSpec
 	hour    CronTimeSpec
@@ -149,6 +141,7 @@ func (c *Cron) TimeToRun(now time.Time) bool {
 		c.dom.Match(uint8(now.Day())) &&
 		c.month.Match(uint8(now.Month())) &&
 		c.dow.Match(uint8(now.Weekday())) {
+		c.lastRun = now
 		return true
 	}
 
