@@ -23,10 +23,11 @@ func (i *Init) cron(wg *sync.WaitGroup, cron Cron, exitFlag <-chan any) {
 		stderr io.ReadCloser
 	)
 
-	ticker := time.NewTicker(time.Second * 20)
+	ticker := time.NewTicker(time.Second * 30)
 cron:
 	for {
 		if cron.TimeToRun(time.Now()) {
+			wingmate.Log().Info().Str(cronTag, cron.Command().Path()).Msg("executing")
 			cmd := exec.Command(cron.Command().Path())
 			iwg = &sync.WaitGroup{}
 
