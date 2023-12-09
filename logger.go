@@ -1,9 +1,10 @@
 package wingmate
 
 import (
+	"io"
+
 	"gitea.suyono.dev/suyono/wingmate/logger"
 	"github.com/rs/zerolog"
-	"io"
 )
 
 var (
@@ -29,13 +30,28 @@ func Log() logger.Log {
 }
 
 func (w *wrapper) Info() logger.Content {
-	return w.log.Info()
+	return (*eventWrapper)(w.log.Info())
 }
 
 func (w *wrapper) Warn() logger.Content {
-	return w.log.Warn()
+	return (*eventWrapper)(w.log.Warn())
 }
 
 func (w *wrapper) Error() logger.Content {
-	return w.log.Error()
+	return (*eventWrapper)(w.log.Error())
+}
+
+type eventWrapper zerolog.Event
+
+func (w *eventWrapper) Msg(msg string) {
+	(*zerolog.Event)(w).Msg(msg)
+}
+
+func (w *eventWrapper) Msgf(format string, data ...any) {
+	(*zerolog.Event)(w).Msgf(format, data...)
+}
+
+func (w *eventWrapper) Str(key, value string) logger.Content {
+	rv := (*zerolog.Event)(w).Str(key, value)
+	return (*eventWrapper)(rv)
 }

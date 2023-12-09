@@ -3,6 +3,7 @@ package logger
 type Content interface {
 	Msg(string)
 	Msgf(string, ...any)
+	Str(string, string) Content
 }
 
 type Level interface {

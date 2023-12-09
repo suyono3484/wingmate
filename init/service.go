@@ -1,26 +1,69 @@
 package init
 
 import (
+	"bufio"
+	"io"
 	"os/exec"
 	"sync"
+	"time"
 
 	"gitea.suyono.dev/suyono/wingmate"
+)
+
+const (
+	serviceTag = "service"
 )
 
 func (i *Init) service(wg *sync.WaitGroup, path Path, exitFlag <-chan any) {
 	defer wg.Done()
 
 	var (
-		err error
+		err        error
+		iwg        *sync.WaitGroup
+		stderr     io.ReadCloser
+		stdout     io.ReadCloser
+		failStatus bool
 	)
 
+	failStatus = false
 service:
 	for {
 		cmd := exec.Command(path.Path())
-		if err = cmd.Run(); err != nil {
+		iwg = &sync.WaitGroup{}
+
+		if stdout, err = cmd.StdoutPipe(); err != nil {
+			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("stdout pipe: %#v", err)
+			failStatus = true
+			goto fail
+		}
+		iwg.Add(1)
+		go i.pipeReader(iwg, stdout, path.Path())
+
+		if stderr, err = cmd.StderrPipe(); err != nil {
+			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("stderr pipe: %#v", err)
+			_ = stdout.Close()
+			failStatus = true
+			goto fail
+		}
+		iwg.Add(1)
+		go i.pipeReader(iwg, stderr, path.Path())
+
+		if err = cmd.Start(); err != nil {
 			wingmate.Log().Error().Msgf("starting service %s error %#v", path.Path(), err)
+			failStatus = true
+			goto fail
 		}
 
+		iwg.Wait()
+
+		if err = cmd.Wait(); err != nil {
+			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("got error when waiting: %#v", err)
+		}
+	fail:
+		if failStatus {
+			time.Sleep(time.Second)
+			failStatus = false
+		}
 		select {
 		case <-exitFlag:
 			break service
@@ -28,4 +71,17 @@ service:
 		}
 	}
 
+}
+
+func (i *Init) pipeReader(wg *sync.WaitGroup, pipe io.ReadCloser, serviceName string) {
+	defer wg.Done()
+
+	scanner := bufio.NewScanner(pipe)
+	for scanner.Scan() {
+		wingmate.Log().Info().Str(serviceTag, serviceName).Msg(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		wingmate.Log().Error().Str(serviceTag, serviceName).Msgf("got error when reading pipe: %#v", err)
+	}
 }

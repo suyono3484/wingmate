@@ -24,6 +24,8 @@ signal:
 			case unix.SIGTERM, unix.SIGINT:
 				if isOpen {
 					close(trigger)
+					wg.Add(1)
+					go i.signalPump(wg, selfExit)
 					isOpen = false
 				}
 			case unix.SIGCHLD:
