@@ -29,9 +29,9 @@ func (i *Init) service(wg *sync.WaitGroup, path Path, exitFlag <-chan any) {
 		wingmate.Log().Info().Str(serviceTag, path.Path()).Msg("stopped")
 	}()
 
-	failStatus = false
 service:
 	for {
+		failStatus = false
 		cmd := exec.Command(path.Path())
 		iwg = &sync.WaitGroup{}
 
@@ -41,7 +41,7 @@ service:
 			goto fail
 		}
 		iwg.Add(1)
-		go i.pipeReader(iwg, stdout, path.Path())
+		go i.pipeReader(iwg, stdout, serviceTag, path.Path())
 
 		if stderr, err = cmd.StderrPipe(); err != nil {
 			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("stderr pipe: %#v", err)
@@ -50,11 +50,14 @@ service:
 			goto fail
 		}
 		iwg.Add(1)
-		go i.pipeReader(iwg, stderr, path.Path())
+		go i.pipeReader(iwg, stderr, serviceTag, path.Path())
 
 		if err = cmd.Start(); err != nil {
 			wingmate.Log().Error().Msgf("starting service %s error %#v", path.Path(), err)
 			failStatus = true
+			_ = stdout.Close()
+			_ = stderr.Close()
+			iwg.Wait()
 			goto fail
 		}
 
@@ -77,17 +80,17 @@ service:
 
 }
 
-func (i *Init) pipeReader(wg *sync.WaitGroup, pipe io.ReadCloser, serviceName string) {
+func (i *Init) pipeReader(wg *sync.WaitGroup, pipe io.ReadCloser, tag, serviceName string) {
 	defer wg.Done()
 
 	scanner := bufio.NewScanner(pipe)
 	for scanner.Scan() {
-		wingmate.Log().Info().Str(serviceTag, serviceName).Msg(scanner.Text())
+		wingmate.Log().Info().Str(tag, serviceName).Msg(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
-		wingmate.Log().Error().Str(serviceTag, serviceName).Msgf("got error when reading pipe: %#v", err)
+		wingmate.Log().Error().Str(tag, serviceName).Msgf("got error when reading pipe: %#v", err)
 	}
 
-	wingmate.Log().Info().Str(serviceTag, serviceName).Msg("closing pipe")
+	wingmate.Log().Info().Str(tag, serviceName).Msg("closing pipe")
 }

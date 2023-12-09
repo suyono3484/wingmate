@@ -6,21 +6,32 @@ import (
 	"log"
 	"os/exec"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 const (
 	// DummyPath = "/workspaces/wingmate/cmd/experiment/dummy/dummy"
-	DummyPath = "/usr/local/bin/wmdummy"
+	DummyPath    = "/usr/local/bin/wmdummy"
+	EnvDummyPath = "DUMMY_PATH"
+	EnvPrefix    = "WINGMATE"
 )
 
 func main() {
 	var (
-		stdout io.ReadCloser
-		stderr io.ReadCloser
-		wg     *sync.WaitGroup
-		err    error
+		stdout  io.ReadCloser
+		stderr  io.ReadCloser
+		wg      *sync.WaitGroup
+		err     error
+		exePath string
 	)
-	cmd := exec.Command(DummyPath)
+	viper.SetEnvPrefix(EnvPrefix)
+	viper.BindEnv(EnvDummyPath)
+	viper.SetDefault(EnvDummyPath, DummyPath)
+
+	exePath = viper.GetString(EnvDummyPath)
+
+	cmd := exec.Command(exePath)
 
 	if stdout, err = cmd.StdoutPipe(); err != nil {
 		log.Panic(err)

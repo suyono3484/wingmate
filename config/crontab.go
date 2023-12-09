@@ -89,27 +89,27 @@ func readCrontab(path string) ([]*Cron, error) {
 			hasRun: false,
 		}
 		if err = c.setField(minute, parts[1]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing minute field %#v", err)
+			wingmate.Log().Error().Msgf("error parsing minute field %+v", err)
 			continue
 		}
 
 		if err = c.setField(hour, parts[2]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing hour field %#v", err)
+			wingmate.Log().Error().Msgf("error parsing hour field %+v", err)
 			continue
 		}
 
 		if err = c.setField(dom, parts[3]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing day of month field %#v", err)
+			wingmate.Log().Error().Msgf("error parsing day of month field %+v", err)
 			continue
 		}
 
 		if err = c.setField(month, parts[4]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing month field %#v", err)
+			wingmate.Log().Error().Msgf("error parsing month field %+v", err)
 			continue
 		}
 
 		if err = c.setField(dow, parts[5]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing day of week field %#v", err)
+			wingmate.Log().Error().Msgf("error parsing day of week field %+v", err)
 			continue
 		}
 
@@ -201,12 +201,12 @@ func (c *Cron) setField(field cronField, input string) error {
 		*cField = &specAny{}
 	} else if strings.HasPrefix(input, "*/") {
 		if parsed64, err = strconv.ParseUint(input[2:], 10, 8); err != nil {
-			return fmt.Errorf("error parse field %#v with input %s: %w", field, input, err)
+			return fmt.Errorf("error parse field %+v with input %s: %w", field, input, err)
 		}
 
 		parsed = uint8(parsed64)
-		if fr.valid(parsed) {
-			return fmt.Errorf("error parse field %#v with input %s: invalid value", field, input)
+		if !fr.valid(parsed) {
+			return fmt.Errorf("error parse field %+v with input %s parsed to %d: invalid value", field, input, parsed)
 		}
 		multi = make([]uint8, 0)
 		current = parsed
@@ -224,12 +224,12 @@ func (c *Cron) setField(field cronField, input string) error {
 			multi = make([]uint8, 0)
 			for _, s := range multiStr {
 				if parsed64, err = strconv.ParseUint(s, 10, 8); err != nil {
-					return fmt.Errorf("error parse field %#v with input %s: %w", field, input, err)
+					return fmt.Errorf("error parse field %+v with input %s: %w", field, input, err)
 				}
 
 				parsed = uint8(parsed64)
-				if fr.valid(parsed) {
-					return fmt.Errorf("error parse field %#v with input %s: invalid value", field, input)
+				if !fr.valid(parsed) {
+					return fmt.Errorf("error parse field %+v with input %s: invalid value", field, input)
 				}
 
 				multi = append(multi, parsed)
@@ -240,12 +240,12 @@ func (c *Cron) setField(field cronField, input string) error {
 			}
 		} else {
 			if parsed64, err = strconv.ParseUint(input, 10, 8); err != nil {
-				return fmt.Errorf("error parse field %#v with input %s: %w", field, input, err)
+				return fmt.Errorf("error parse field %+v with input %s: %w", field, input, err)
 			}
 
 			parsed = uint8(parsed64)
-			if fr.valid(parsed) {
-				return fmt.Errorf("error parse field %#v with input %s: invalid value", field, input)
+			if !fr.valid(parsed) {
+				return fmt.Errorf("error parse field %+v with input %s: invalid value", field, input)
 			}
 
 			*cField = &specExact{

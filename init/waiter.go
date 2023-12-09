@@ -27,11 +27,13 @@ func (i *Init) waiter(wg *sync.WaitGroup, runningFlag <-chan any, sigHandlerFlag
 	flagged = true
 wait:
 	for {
-		select {
-		case <-runningFlag:
-			wingmate.Log().Info().Msg("waiter received shutdown signal...")
-			running = false
-		default:
+		if running {
+			select {
+			case <-runningFlag:
+				wingmate.Log().Info().Msg("waiter received shutdown signal...")
+				running = false
+			default:
+			}
 		}
 
 		if _, err = unix.Wait4(-1, &ws, 0, nil); err != nil {
