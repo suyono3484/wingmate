@@ -22,7 +22,9 @@ const (
 
 func main() {
 	viper.SetEnvPrefix(EnvPrefix)
-	viper.BindEnv(EnvDummyPath, EnvLog, EnvLogMessage)
+	viper.BindEnv(EnvDummyPath)
+	viper.BindEnv(EnvLog)
+	viper.BindEnv(EnvLogMessage)
 	viper.SetDefault(EnvDummyPath, DummyPath)
 	viper.SetDefault(EnvLogMessage, EnvDefaultLogMessage)
 
@@ -30,6 +32,7 @@ func main() {
 
 	logPath := viper.GetString(EnvLog)
 	logMessage := viper.GetString(EnvLogMessage)
+	log.Println("log path:", logPath)
 	if logPath != "" {
 		var (
 			err  error

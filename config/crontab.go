@@ -126,23 +126,25 @@ func (c *Cron) Command() string {
 }
 
 func (c *Cron) TimeToRun(now time.Time) bool {
-	if !c.hasRun {
-		c.lastRun = now
-		c.hasRun = true
-		return true
-	}
-
-	if now.Sub(c.lastRun) <= time.Minute && now.Minute() == c.lastRun.Minute() {
-		return false
-	}
-
 	if c.minute.Match(uint8(now.Minute())) &&
 		c.hour.Match(uint8(now.Hour())) &&
 		c.dom.Match(uint8(now.Day())) &&
 		c.month.Match(uint8(now.Month())) &&
 		c.dow.Match(uint8(now.Weekday())) {
-		c.lastRun = now
-		return true
+
+		if c.hasRun {
+			if now.Sub(c.lastRun) <= time.Minute && now.Minute() == c.lastRun.Minute() {
+				return false
+			} else {
+				c.lastRun = now
+				return true
+			}
+		} else {
+
+			c.lastRun = now
+			c.hasRun = true
+			return true
+		}
 	}
 
 	return false
