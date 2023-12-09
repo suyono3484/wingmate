@@ -2,9 +2,14 @@ package wingmate
 
 import (
 	"io"
+	"time"
 
 	"gitea.suyono.dev/suyono/wingmate/logger"
 	"github.com/rs/zerolog"
+)
+
+const (
+	timeTag = "time"
 )
 
 var (
@@ -30,15 +35,15 @@ func Log() logger.Log {
 }
 
 func (w *wrapper) Info() logger.Content {
-	return (*eventWrapper)(w.log.Info())
+	return (*eventWrapper)(w.log.Info().Time(timeTag, time.Now()))
 }
 
 func (w *wrapper) Warn() logger.Content {
-	return (*eventWrapper)(w.log.Warn())
+	return (*eventWrapper)(w.log.Warn().Time(timeTag, time.Now()))
 }
 
 func (w *wrapper) Error() logger.Content {
-	return (*eventWrapper)(w.log.Error())
+	return (*eventWrapper)(w.log.Error().Time(timeTag, time.Now()))
 }
 
 type eventWrapper zerolog.Event

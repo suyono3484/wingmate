@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	DummyPath = "/workspaces/wingmate/cmd/experiment/dummy/dummy"
+	// DummyPath = "/workspaces/wingmate/cmd/experiment/dummy/dummy"
+	DummyPath = "/usr/local/bin/wmdummy"
 )
 
 func main() {

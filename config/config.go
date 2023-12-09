@@ -54,7 +54,7 @@ func Read() (*Config, error) {
 		}
 	}
 	if err != nil {
-		wingmate.Log().Error().Msgf("encounter error when reading service directory %s: %#v", svcdir, err)
+		wingmate.Log().Error().Msgf("encounter error when reading service directory %s: %+v", svcdir, err)
 	}
 
 	crontabfile = filepath.Join(configPath, CrontabFileName)
@@ -64,7 +64,7 @@ func Read() (*Config, error) {
 		cronAvailable = true
 	}
 	if err != nil {
-		wingmate.Log().Error().Msgf("encounter error when reading crontab %s: %#v", crontabfile, err)
+		wingmate.Log().Error().Msgf("encounter error when reading crontab %s: %+v", crontabfile, err)
 	}
 
 	if !serviceAvailable && !cronAvailable {

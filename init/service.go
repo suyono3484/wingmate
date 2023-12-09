@@ -25,6 +25,10 @@ func (i *Init) service(wg *sync.WaitGroup, path Path, exitFlag <-chan any) {
 		failStatus bool
 	)
 
+	defer func() {
+		wingmate.Log().Info().Str(serviceTag, path.Path()).Msg("stopped")
+	}()
+
 	failStatus = false
 service:
 	for {
@@ -57,7 +61,7 @@ service:
 		iwg.Wait()
 
 		if err = cmd.Wait(); err != nil {
-			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("got error when waiting: %#v", err)
+			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("got error when waiting: %+v", err)
 		}
 	fail:
 		if failStatus {
@@ -84,4 +88,6 @@ func (i *Init) pipeReader(wg *sync.WaitGroup, pipe io.ReadCloser, serviceName st
 	if err := scanner.Err(); err != nil {
 		wingmate.Log().Error().Str(serviceTag, serviceName).Msgf("got error when reading pipe: %#v", err)
 	}
+
+	wingmate.Log().Info().Str(serviceTag, serviceName).Msg("closing pipe")
 }
