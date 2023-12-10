@@ -1,20 +1,8 @@
 FROM golang:1.21-alpine as builder
 
 ADD . /root/wingmate
-WORKDIR /root/wingmate/cmd/wingmate
-RUN go build -v
-
-WORKDIR /root/wingmate/cmd/experiment/dummy
-RUN go build -v
-
-WORKDIR /root/wingmate/cmd/experiment/starter
-RUN go build -v
-
-WORKDIR /root/wingmate/cmd/experiment/spawner
-RUN go build -v
-
-WORKDIR /root/wingmate/cmd/experiment/oneshot
-RUN go build -v
+WORKDIR /root/wingmate/
+RUN apk add make && make all
 
 
 
@@ -26,6 +14,7 @@ COPY --from=builder /root/wingmate/cmd/experiment/dummy/dummy /usr/local/bin/wmd
 COPY --from=builder /root/wingmate/cmd/experiment/starter/starter /usr/local/bin/wmstarter
 COPY --from=builder /root/wingmate/cmd/experiment/oneshot/oneshot /usr/local/bin/wmoneshot
 COPY --from=builder /root/wingmate/cmd/experiment/spawner/spawner /usr/local/bin/wmspawner
+COPY --from=builder /root/wingmate/cmd/pidproxy/pidproxy /usr/local/bin/wmpidproxy
 ADD --chmod=755 docker/alpine/entry.sh /usr/local/bin/entry.sh
 ADD --chmod=755 docker/alpine/etc /etc
 
