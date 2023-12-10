@@ -18,6 +18,8 @@ const (
 	EnvLog               = "LOG"
 	EnvLogMessage        = "LOG_MESSAGE"
 	EnvDefaultLogMessage = "oneshot executed"
+	EnvInstanceNum       = "INSTANCE_NUM"
+	EnvDefaultInstances  = -1
 )
 
 func main() {
@@ -25,8 +27,10 @@ func main() {
 	viper.BindEnv(EnvDummyPath)
 	viper.BindEnv(EnvLog)
 	viper.BindEnv(EnvLogMessage)
+	viper.BindEnv(EnvInstanceNum)
 	viper.SetDefault(EnvDummyPath, DummyPath)
 	viper.SetDefault(EnvLogMessage, EnvDefaultLogMessage)
+	viper.SetDefault(EnvInstanceNum, EnvDefaultInstances)
 
 	exePath := viper.GetString(EnvDummyPath)
 
@@ -50,11 +54,16 @@ func main() {
 		}
 	}
 
-	StartRandomInstances(exePath)
+	StartInstances(exePath)
 }
 
-func StartRandomInstances(exePath string) {
+func StartInstances(exePath string) {
 	num := (rand.Uint32() % 16) + 16
+
+	iNum := viper.GetInt(EnvInstanceNum)
+	if iNum > 0 {
+		num = uint32(iNum)
+	}
 
 	var (
 		ctr uint32
