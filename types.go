@@ -6,4 +6,6 @@ const (
 	Any CronTimeType = iota
 	Exact
 	MultipleOccurrence
+
+	EnvPrefix = "WINGMATE"
 )

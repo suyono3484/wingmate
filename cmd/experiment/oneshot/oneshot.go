@@ -14,7 +14,6 @@ const (
 	// DummyPath = "/workspaces/wingmate/cmd/experiment/dummy/dummy"
 	DummyPath            = "/usr/local/bin/wmdummy"
 	EnvDummyPath         = "DUMMY_PATH"
-	EnvPrefix            = "WINGMATE"
 	EnvLog               = "LOG"
 	EnvLogMessage        = "LOG_MESSAGE"
 	EnvDefaultLogMessage = "oneshot executed"
@@ -23,7 +22,7 @@ const (
 )
 
 func main() {
-	viper.SetEnvPrefix(EnvPrefix)
+	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	viper.BindEnv(EnvDummyPath)
 	viper.BindEnv(EnvLog)
 	viper.BindEnv(EnvLogMessage)

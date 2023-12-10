@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
 )
 
@@ -14,7 +15,6 @@ const (
 	// DummyPath = "/workspaces/wingmate/cmd/experiment/dummy/dummy"
 	DummyPath    = "/usr/local/bin/wmdummy"
 	EnvDummyPath = "DUMMY_PATH"
-	EnvPrefix    = "WINGMATE"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 		err     error
 		exePath string
 	)
-	viper.SetEnvPrefix(EnvPrefix)
+	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	viper.BindEnv(EnvDummyPath)
 	viper.SetDefault(EnvDummyPath, DummyPath)
 

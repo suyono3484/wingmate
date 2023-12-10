@@ -5,11 +5,11 @@ import (
 	"os/exec"
 	"time"
 
+	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
 )
 
 const (
-	EnvPrefix      = "WINGMATE"
 	EnvOneShotPath = "ONESHOT_PATH"
 	OneShotPath    = "/usr/local/bin/wmoneshot"
 )
@@ -20,7 +20,7 @@ func main() {
 		err error
 		t   *time.Ticker
 	)
-	viper.SetEnvPrefix(EnvPrefix)
+	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	viper.BindEnv(EnvOneShotPath)
 	viper.SetDefault(EnvOneShotPath, OneShotPath)
 

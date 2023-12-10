@@ -8,13 +8,16 @@ import (
 	"syscall"
 	"time"
 
+	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sys/unix"
 )
 
 const (
-	pidFileFlag = "pid-file"
+	pidFileFlag         = "pid-file"
+	EnvStartSecs        = "STARTSECS"
+	EnvDefaultStartSecs = 1
 )
 
 var (
@@ -33,6 +36,10 @@ func main() {
 		selfArgs []string
 		found    bool
 	)
+
+	viper.SetEnvPrefix(wingmate.EnvPrefix)
+	viper.BindEnv(EnvStartSecs)
+	viper.SetDefault(EnvStartSecs, EnvDefaultStartSecs)
 
 	if len(os.Args) <= 2 {
 		log.Println("invalid argument")
@@ -77,7 +84,8 @@ func pidProxy(cmd *cobra.Command, args []string) error {
 	} else {
 		go startProcess(childArgs[0])
 	}
-	time.Sleep(time.Second)
+	initialWait := viper.GetInt(EnvStartSecs)
+	time.Sleep(time.Second * time.Duration(initialWait))
 
 	var (
 		err error

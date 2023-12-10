@@ -15,8 +15,8 @@ COPY --from=builder /root/wingmate/cmd/experiment/starter/starter /usr/local/bin
 COPY --from=builder /root/wingmate/cmd/experiment/oneshot/oneshot /usr/local/bin/wmoneshot
 COPY --from=builder /root/wingmate/cmd/experiment/spawner/spawner /usr/local/bin/wmspawner
 COPY --from=builder /root/wingmate/cmd/pidproxy/pidproxy /usr/local/bin/wmpidproxy
-ADD --chmod=755 docker/alpine/entry.sh /usr/local/bin/entry.sh
-ADD --chmod=755 docker/alpine/etc /etc
+ADD --chmod=755 docker/bookworm/entry.sh /usr/local/bin/entry.sh
+ADD --chmod=755 docker/bookworm/etc /etc
 
 ENTRYPOINT [ "/usr/local/bin/entry.sh" ]
 CMD [ "/usr/local/bin/wingmate" ]
