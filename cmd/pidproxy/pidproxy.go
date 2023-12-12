@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
@@ -90,7 +91,16 @@ func pidProxy(cmd *cobra.Command, args []string) error {
 	var (
 		err error
 		pid int
+		sc  chan os.Signal
+		t   *time.Timer
 	)
+
+	sc = make(chan os.Signal, 1)
+	signal.Notify(sc, unix.SIGTERM)
+
+	t = time.NewTimer(time.Second)
+
+check:
 	for {
 		if pid, err = readPid(pidfile); err != nil {
 			return err
@@ -100,8 +110,20 @@ func pidProxy(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		time.Sleep(time.Second)
+		select {
+		case <-t.C:
+		case <-sc:
+			if pid, err = readPid(pidfile); err != nil {
+				return err
+			}
+
+			if err = unix.Kill(pid, unix.SIGTERM); err != nil {
+				return err
+			}
+			break check
+		}
 	}
+	return nil
 }
 
 func readPid(pidFile string) (int, error) {
