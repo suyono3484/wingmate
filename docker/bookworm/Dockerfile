@@ -8,7 +8,8 @@ RUN make all
 
 FROM debian:bookworm
 
-RUN ln -sf /usr/share/zoneinfo/Australia/Sydney /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/Australia/Sydney /etc/localtime && \
+    apt update && apt install -y procps
 COPY --from=builder /root/wingmate/cmd/wingmate/wingmate /usr/local/bin/wingmate
 COPY --from=builder /root/wingmate/cmd/experiment/dummy/dummy /usr/local/bin/wmdummy
 COPY --from=builder /root/wingmate/cmd/experiment/starter/starter /usr/local/bin/wmstarter

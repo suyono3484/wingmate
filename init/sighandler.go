@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func (i *Init) sighandler(wg *sync.WaitGroup, trigger chan<- any, selfExit <-chan any) {
+func (i *Init) sighandler(wg *sync.WaitGroup, trigger chan<- any, selfExit <-chan any, sigchld chan<- os.Signal) {
 	defer wg.Done()
 
 	defer func() {
@@ -35,7 +35,10 @@ signal:
 					isOpen = false
 				}
 			case unix.SIGCHLD:
-				// do nothing
+				select {
+				case sigchld <- s:
+				default:
+				}
 			}
 
 		case <-selfExit:

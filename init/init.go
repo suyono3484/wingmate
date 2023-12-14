@@ -1,6 +1,7 @@
 package init
 
 import (
+	"os"
 	"sync"
 	"time"
 )
@@ -34,17 +35,19 @@ func (i *Init) Start() {
 		wg             *sync.WaitGroup
 		signalTrigger  chan any
 		sighandlerExit chan any
+		sigchld        chan os.Signal
 	)
 
 	signalTrigger = make(chan any)
 	sighandlerExit = make(chan any)
+	sigchld = make(chan os.Signal, 1)
 
 	wg = &sync.WaitGroup{}
 	wg.Add(1)
-	go i.waiter(wg, signalTrigger, sighandlerExit)
+	go i.waiter(wg, signalTrigger, sighandlerExit, sigchld)
 
 	wg.Add(1)
-	go i.sighandler(wg, signalTrigger, sighandlerExit)
+	go i.sighandler(wg, signalTrigger, sighandlerExit, sigchld)
 
 	for _, s := range i.config.Services() {
 		wg.Add(1)
