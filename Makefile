@@ -1,6 +1,6 @@
 
 
-all: wingmate dummy oneshot spawner starter pidproxy
+all: wingmate dummy oneshot spawner starter pidproxy exec
 
 wingmate:
 	$(MAKE) -C cmd/wingmate all
