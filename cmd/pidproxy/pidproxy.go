@@ -42,11 +42,6 @@ func main() {
 	viper.BindEnv(EnvStartSecs)
 	viper.SetDefault(EnvStartSecs, EnvDefaultStartSecs)
 
-	if len(os.Args) <= 2 {
-		log.Println("invalid argument")
-		os.Exit(1)
-	}
-
 	rootCmd.PersistentFlags().StringP(pidFileFlag, "p", "", "location of pid file")
 	rootCmd.MarkFlagRequired(pidFileFlag)
 	viper.BindPFlag(pidFileFlag, rootCmd.PersistentFlags().Lookup(pidFileFlag))
@@ -55,16 +50,21 @@ func main() {
 	for i, arg = range os.Args {
 		if arg == "--" {
 			found = true
-			selfArgs = os.Args[1:i]
 			if len(os.Args) <= i+1 {
 				log.Println("invalid argument")
 				os.Exit(1)
 			}
+			selfArgs = os.Args[1:i]
 			childArgs = os.Args[i+1:]
 			break
 		}
 	}
 	if !found {
+		log.Println("invalid argument")
+		os.Exit(1)
+	}
+
+	if len(childArgs) == 0 {
 		log.Println("invalid argument")
 		os.Exit(1)
 	}

@@ -8,6 +8,9 @@ wingmate:
 pidproxy:
 	$(MAKE) -C cmd/pidproxy all
 
+exec:
+	$(MAKE) -C cmd/exec all
+
 dummy:
 	$(MAKE) -C cmd/experiment/dummy all
 
@@ -23,6 +26,7 @@ starter:
 clean:
 	$(MAKE) -C cmd/wingmate clean
 	$(MAKE) -C cmd/pidproxy clean
+	$(MAKE) -C cmd/exec clean
 	$(MAKE) -C cmd/experiment/dummy clean
 	$(MAKE) -C cmd/experiment/oneshot clean
 	$(MAKE) -C cmd/experiment/spawner clean
