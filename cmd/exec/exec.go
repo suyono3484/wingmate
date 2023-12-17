@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -95,36 +96,37 @@ func execCmd(cmd *cobra.Command, args []string) error {
 	ug := viper.GetString(EnvUser)
 	if len(ug) > 0 {
 		user, group, ok := strings.Cut(ug, ":")
-		uid, err = strconv.ParseUint(user, 10, 32)
-		if err != nil {
-			if uid, err = getUid(user); err != nil {
-				return err
-			}
-		}
-		if err = unix.Setuid(int(uid)); err != nil {
-			return err
-		}
-
 		if ok {
 			if gid, err = strconv.ParseUint(group, 10, 32); err != nil {
 				if gid, err = getGid(group); err != nil {
-					return err
+					return fmt.Errorf("cgo getgid: %w", err)
 				}
 			}
 			if err = unix.Setgid(int(gid)); err != nil {
-				return err
+				return fmt.Errorf("setgid: %w", err)
 			}
 		}
+
+		uid, err = strconv.ParseUint(user, 10, 32)
+		if err != nil {
+			if uid, err = getUid(user); err != nil {
+				return fmt.Errorf("cgo getuid: %w", err)
+			}
+		}
+		if err = unix.Setuid(int(uid)); err != nil {
+			return fmt.Errorf("setuid: %w", err)
+		}
+
 	}
 
 	if path, err = exec.LookPath(childArgs[0]); err != nil {
 		if !errors.Is(err, exec.ErrDot) {
-			return err
+			return fmt.Errorf("lookpath: %w", err)
 		}
 	}
 
 	if err = unix.Exec(path, childArgs, os.Environ()); err != nil {
-		return err
+		return fmt.Errorf("exec: %w", err)
 	}
 
 	return nil

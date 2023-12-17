@@ -2,19 +2,16 @@ FROM golang:1.21-alpine as builder
 
 ADD . /root/wingmate
 WORKDIR /root/wingmate/
-RUN apk add make && make all
+RUN apk add make build-base && CGO_ENABLED=1 make all && make DESTDIR=/usr/local/bin/wingmate install
 
 
 
 FROM alpine:3.18
 
-RUN apk add tzdata && ln -s /usr/share/zoneinfo/Australia/Sydney /etc/localtime
-COPY --from=builder /root/wingmate/cmd/wingmate/wingmate /usr/local/bin/wingmate
-COPY --from=builder /root/wingmate/cmd/experiment/dummy/dummy /usr/local/bin/wmdummy
-COPY --from=builder /root/wingmate/cmd/experiment/starter/starter /usr/local/bin/wmstarter
-COPY --from=builder /root/wingmate/cmd/experiment/oneshot/oneshot /usr/local/bin/wmoneshot
-COPY --from=builder /root/wingmate/cmd/experiment/spawner/spawner /usr/local/bin/wmspawner
-COPY --from=builder /root/wingmate/cmd/pidproxy/pidproxy /usr/local/bin/wmpidproxy
+RUN apk add tzdata && ln -s /usr/share/zoneinfo/Australia/Sydney /etc/localtime && \
+    adduser -h /home/user1 -D -s /bin/sh user1 && \
+    adduser -h /home/user2 -D -s /bin/sh user2
+COPY --from=builder /usr/local/bin/wingmate/ /usr/local/bin/
 ADD --chmod=755 docker/alpine/entry.sh /usr/local/bin/entry.sh
 ADD --chmod=755 docker/alpine/etc /etc
 
