@@ -2,6 +2,7 @@ FROM golang:1.21-bookworm as builder
 
 ADD . /root/wingmate
 WORKDIR /root/wingmate/
+ARG TEST_BUILD
 RUN make all && make DESTDIR=/usr/local/bin/wingmate install
 
 
