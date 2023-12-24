@@ -7,6 +7,7 @@ import (
 
 	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -48,8 +49,11 @@ func Read() (*Config, error) {
 	if len(dirent) > 0 {
 		for _, d := range dirent {
 			if d.Type().IsRegular() {
-				serviceAvailable = true
-				outConfig.ServicePaths = append(outConfig.ServicePaths, filepath.Join(svcdir, d.Name()))
+				svcPath := filepath.Join(svcdir, d.Name())
+				if err = unix.Access(svcPath, unix.X_OK); err == nil {
+					serviceAvailable = true
+					outConfig.ServicePaths = append(outConfig.ServicePaths, svcPath)
+				}
 			}
 		}
 	}
