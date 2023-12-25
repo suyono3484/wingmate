@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"log"
 	"os"
 	"os/exec"
@@ -130,8 +132,6 @@ func readPid(pidFile string) (int, error) {
 	var (
 		file  *os.File
 		err   error
-		buf   []byte
-		n     int
 		pid64 int64
 	)
 
@@ -142,18 +142,15 @@ func readPid(pidFile string) (int, error) {
 		_ = file.Close()
 	}()
 
-	buf = make([]byte, 1024)
-	n, err = file.Read(buf)
-	if err != nil {
-		return 0, err
+	scanner := bufio.NewScanner(file)
+	if scanner.Scan() {
+		if pid64, err = strconv.ParseInt(scanner.Text(), 10, 64); err != nil {
+			return 0, err
+		}
+		return int(pid64), nil
+	} else {
+		return 0, errors.New("invalid scanner")
 	}
-
-	pid64, err = strconv.ParseInt(string(buf[:n]), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return int(pid64), nil
 }
 
 func startProcess(arg0 string, args ...string) {
