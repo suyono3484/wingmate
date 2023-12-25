@@ -42,7 +42,8 @@ COPY --from=source /usr/local/bin/wmexec /usr/local/bin/wmexec
 ENTRYPOINT [ "/usr/local/bin/entry.sh" ]
 CMD [ "/usr/local/bin/wingmate" ]
 ```
-You can find some examples for shell script in this [directory](../alpine/).
+You can find some examples for shell script in [alpine docker](docker/alpine) and 
+[bookworm docker](docker/bookworm).
 
 ## Configuration
 
@@ -106,7 +107,7 @@ background service is still running, in current implementation it checks every s
 wmpidproxy --pid-file <path to pid file> -- <background service binary/start script>
 ```
 #### Example
-Running sshd background with `wingmate` and `wmpidproxy`: [here](example/ssh-docker/)
+Running sshd background with `wingmate` and `wmpidproxy`: [here](example/ssh-docker)
 
 ## Wingmate Exec binary
 
