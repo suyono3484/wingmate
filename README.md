@@ -105,8 +105,12 @@ background service is still running, in current implementation it checks every s
 ```shell
 wmpidproxy --pid-file <path to pid file> -- <background service binary/start script>
 ```
+#### Example
+Running sshd background with `wingmate` and `wmpidproxy`: [here](example/ssh-docker/)
 
 ## Wingmate Exec binary
+
+
 ## Wingmate core binary
 ### Service
 ### Cron

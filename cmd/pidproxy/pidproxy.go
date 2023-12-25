@@ -94,13 +94,13 @@ func pidProxy(cmd *cobra.Command, args []string) error {
 		err error
 		pid int
 		sc  chan os.Signal
-		t   *time.Timer
+		t   *time.Ticker
 	)
 
 	sc = make(chan os.Signal, 1)
 	signal.Notify(sc, unix.SIGTERM)
 
-	t = time.NewTimer(time.Second)
+	t = time.NewTicker(time.Second)
 
 check:
 	for {
