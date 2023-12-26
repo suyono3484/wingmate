@@ -12,7 +12,8 @@ Just copy the binary, and exec from the entry point script.
 There are three binaries in this project: `wingmate`, `wmpidproxy`, and `wmexec`.
 
 `wingmate` is the core binary. It reads config, starts, restarts services. It also
-runs cron. Read [here](#wingmate-core-binary) for further details about `wingmate`.
+runs cron. Read the [configuration](#configuration) section for files needed to run
+`wingmate`.
 
 `wmpidproxy` is a helper binary for monitoring _legacy style_ service (fork, exit
 initial proces, and continue in background). Read [here](#wingmate-pid-proxy-binary)
@@ -109,9 +110,30 @@ wmpidproxy --pid-file <path to pid file> -- <background service binary/start scr
 #### Example
 Running sshd background with `wingmate` and `wmpidproxy`: [here](example/ssh-docker)
 
+#### Note
+
+It is recommended to configure services to run in foreground if they support it. When services
+running in foreground, they are running as direct children process of `wingmate`.
+`wingmate` monitors children process effectively. Whenever a child process exited/terminated,
+`wingmate` will start it again quickly. Running in foreground also removes the overhead of running
+`wmpidproxy` together with the service.
+
 ## Wingmate Exec binary
 
+`wingmate` runs all the services as its children using the same `uid`, `gid`, and in the
+same process group. You can use `wmexec` to run service in different `uid`, `gid`, or make
+the service process as its own process group leader.
 
-## Wingmate core binary
-### Service
-### Cron
+#### Syntax
+
+```shell
+wmexec [--user <uid>[:<gid>]] [--setsid] -- <target executable>
+```
+| Option   | Parameter | Description                                                                                              |
+|----------|-----------|----------------------------------------------------------------------------------------------------------|
+| --user   | uid[:gid] | Set the real user ID and the real group id. Uid and Gid can be either in numeric form or in name form    |
+| --setsid |           | Set the process become the leader of its own process group, effectively detaching from parent's terminal |
+
+#### Example
+
+You can find example for `wmexec` in [here](docker/alpine/etc/wingmate) and [here](docker/bookworm/etc/wingmate)
