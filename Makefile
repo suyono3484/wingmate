@@ -1,6 +1,13 @@
 DESTDIR = /usr/local/bin
 
-all: wingmate dummy oneshot spawner starter pidproxy exec
+installs = install-dir
+programs = wingmate pidproxy exec
+ifdef TEST_BUILD
+	programs += oneshot spawner starter dummy
+	installs += install-test
+endif
+
+all: ${programs}
 
 wingmate:
 	$(MAKE) -C cmd/wingmate all
@@ -32,12 +39,16 @@ clean:
 	$(MAKE) -C cmd/experiment/spawner clean
 	$(MAKE) -C cmd/experiment/starter clean
 
-install:
-	install -d ${DESTDIR}
+install: ${installs}
 	$(MAKE) -C cmd/wingmate DESTDIR=${DESTDIR} install
 	$(MAKE) -C cmd/pidproxy DESTDIR=${DESTDIR} install
 	$(MAKE) -C cmd/exec DESTDIR=${DESTDIR} install
+
+install-test:
 	$(MAKE) -C cmd/experiment/dummy DESTDIR=${DESTDIR} install
 	$(MAKE) -C cmd/experiment/oneshot DESTDIR=${DESTDIR} install
 	$(MAKE) -C cmd/experiment/spawner DESTDIR=${DESTDIR} install
 	$(MAKE) -C cmd/experiment/starter DESTDIR=${DESTDIR} install
+
+install-dir:
+	install -d ${DESTDIR}
