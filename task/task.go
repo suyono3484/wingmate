@@ -5,8 +5,6 @@ import (
 )
 
 type Tasks struct {
-	//services []wminit.Path
-	//cron     []wminit.Cron
 	services []wminit.Task
 	crones   []wminit.CronTask
 }
@@ -39,13 +37,11 @@ func (ts *Tasks) List() []wminit.Task {
 }
 
 func (ts *Tasks) Services() []wminit.Task {
-	panic("not implemented")
-	return nil
+	return ts.services
 }
 
 func (ts *Tasks) Crones() []wminit.CronTask {
-	panic("not implemented")
-	return nil
+	return ts.crones
 }
 
 func (ts *Tasks) Get(name string) (wminit.Task, error) {

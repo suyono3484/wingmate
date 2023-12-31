@@ -40,11 +40,11 @@ func convert(cfg *config.Config) *wConfig {
 
 func convertSchedule(cfg config.CronTimeSpec) task.CronTimeSpec {
 	switch v := cfg.(type) {
-	case config.SpecAny:
+	case *config.SpecAny:
 		return task.NewCronAnySpec()
-	case config.SpecExact:
+	case *config.SpecExact:
 		return task.NewCronExactSpec(v.Value())
-	case config.SpecMultiOccurrence:
+	case *config.SpecMultiOccurrence:
 		return task.NewCronMultiOccurrenceSpec(v.Values()...)
 	}
 
