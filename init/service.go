@@ -14,7 +14,7 @@ const (
 	serviceTag = "service"
 )
 
-func (i *Init) service(wg *sync.WaitGroup, path Path, exitFlag <-chan any) {
+func (i *Init) service(wg *sync.WaitGroup, task Task, exitFlag <-chan any) {
 	defer wg.Done()
 
 	var (
@@ -23,37 +23,42 @@ func (i *Init) service(wg *sync.WaitGroup, path Path, exitFlag <-chan any) {
 		stderr     io.ReadCloser
 		stdout     io.ReadCloser
 		failStatus bool
+		cmd        *exec.Cmd
 	)
 
 	defer func() {
-		wingmate.Log().Info().Str(serviceTag, path.Path()).Msg("stopped")
+		wingmate.Log().Info().Str(serviceTag, task.Name()).Msg("stopped")
 	}()
 
 service:
 	for {
 		failStatus = false
-		cmd := exec.Command(path.Path())
+		if len(task.Command()) == 1 {
+			cmd = exec.Command(task.Command()[0])
+		} else {
+			cmd = exec.Command(task.Command()[0], task.Command()[1:]...)
+		}
 		iwg = &sync.WaitGroup{}
 
 		if stdout, err = cmd.StdoutPipe(); err != nil {
-			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("stdout pipe: %#v", err)
+			wingmate.Log().Error().Str(serviceTag, task.Name()).Msgf("stdout pipe: %#v", err)
 			failStatus = true
 			goto fail
 		}
 		iwg.Add(1)
-		go i.pipeReader(iwg, stdout, serviceTag, path.Path())
+		go i.pipeReader(iwg, stdout, serviceTag, task.Name())
 
 		if stderr, err = cmd.StderrPipe(); err != nil {
-			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("stderr pipe: %#v", err)
+			wingmate.Log().Error().Str(serviceTag, task.Name()).Msgf("stderr pipe: %#v", err)
 			_ = stdout.Close()
 			failStatus = true
 			goto fail
 		}
 		iwg.Add(1)
-		go i.pipeReader(iwg, stderr, serviceTag, path.Path())
+		go i.pipeReader(iwg, stderr, serviceTag, task.Name())
 
 		if err = cmd.Start(); err != nil {
-			wingmate.Log().Error().Msgf("starting service %s error %#v", path.Path(), err)
+			wingmate.Log().Error().Msgf("starting service %s error %#v", task.Name(), err)
 			failStatus = true
 			_ = stdout.Close()
 			_ = stderr.Close()
@@ -64,7 +69,7 @@ service:
 		iwg.Wait()
 
 		if err = cmd.Wait(); err != nil {
-			wingmate.Log().Error().Str(serviceTag, path.Path()).Msgf("got error when waiting: %+v", err)
+			wingmate.Log().Error().Str(serviceTag, task.Name()).Msgf("got error when waiting: %+v", err)
 		}
 	fail:
 		if failStatus {

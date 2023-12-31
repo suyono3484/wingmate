@@ -1,60 +1,53 @@
 package main
 
 import (
-	"time"
-
 	"gitea.suyono.dev/suyono/wingmate/config"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
+	"gitea.suyono.dev/suyono/wingmate/task"
 )
 
-type wPath struct {
-	path string
-}
-
-func (p wPath) Path() string {
-	return p.path
-}
-
 type wConfig struct {
-	services []wminit.Path
-	cron     []wminit.Cron
+	tasks *task.Tasks
 }
 
-func (c wConfig) Services() []wminit.Path {
-	return c.services
+func (c *wConfig) Tasks() wminit.Tasks {
+	return c.tasks
 }
 
-func (c wConfig) Cron() []wminit.Cron {
-	return c.cron
-}
-
-type wCron struct {
-	iCron *config.Cron
-}
-
-func (c wCron) TimeToRun(now time.Time) bool {
-	return c.iCron.TimeToRun(now)
-}
-
-func (c wCron) Command() wminit.Path {
-	return wPath{
-		path: c.iCron.Command(),
-	}
-}
-
-func convert(cfg *config.Config) wConfig {
-	retval := wConfig{
-		services: make([]wminit.Path, 0, len(cfg.ServicePaths)),
-		cron:     make([]wminit.Cron, 0, len(cfg.Cron)),
+func convert(cfg *config.Config) *wConfig {
+	retval := &wConfig{
+		tasks: task.NewTasks(),
 	}
 
 	for _, s := range cfg.ServicePaths {
-		retval.services = append(retval.services, wPath{path: s})
+		retval.tasks.AddV0Service(s)
+
 	}
 
+	var schedule task.CronSchedule
 	for _, c := range cfg.Cron {
-		retval.cron = append(retval.cron, wCron{iCron: c})
+		schedule.Minute = convertSchedule(c.Minute)
+		schedule.Hour = convertSchedule(c.Hour)
+		schedule.DoM = convertSchedule(c.DoM)
+		schedule.Month = convertSchedule(c.Month)
+		schedule.DoW = convertSchedule(c.DoW)
+
+		retval.tasks.AddV0Cron(schedule, c.Command)
 	}
 
 	return retval
+}
+
+func convertSchedule(cfg config.CronTimeSpec) task.CronTimeSpec {
+	switch v := cfg.(type) {
+	case config.SpecAny:
+		return task.NewCronAnySpec()
+	case config.SpecExact:
+		return task.NewCronExactSpec(v.Value())
+	case config.SpecMultiOccurrence:
+		return task.NewCronMultiOccurrenceSpec(v.Values()...)
+	}
+
+	panic("invalid conversion")
+	return nil
 }

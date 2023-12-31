@@ -4,46 +4,34 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"gitea.suyono.dev/suyono/wingmate"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
-
-	"gitea.suyono.dev/suyono/wingmate"
 )
 
-type CronExactSpec interface {
-	CronTimeSpec
-	Value() uint8
-}
-
-type CronMultipleOccurrenceSpec interface {
-	CronTimeSpec
-	Values() []uint8
-}
-
 type CronTimeSpec interface {
-	Type() wingmate.CronTimeType
-	Match(uint8) bool
+	//Type() wingmate.CronTimeType
+	//Match(uint8) bool
 }
 
 type Cron struct {
-	minute  CronTimeSpec
-	hour    CronTimeSpec
-	dom     CronTimeSpec
-	month   CronTimeSpec
-	dow     CronTimeSpec
-	command string
-	lastRun time.Time
-	hasRun  bool
+	Minute  CronTimeSpec
+	Hour    CronTimeSpec
+	DoM     CronTimeSpec
+	Month   CronTimeSpec
+	DoW     CronTimeSpec
+	Command string
 }
 
 type cronField int
 
 const (
-	CrontabEntryRegex  = `^\s*(?P<minute>\S+)\s+(?P<hour>\S+)\s+(?P<dom>\S+)\s+(?P<month>\S+)\s+(?P<dow>\S+)\s+(?P<command>\S.*\S)\s*$`
-	CrontabSubmatchLen = 7
+	CrontabEntryRegexPattern         = `^\s*(?P<minute>\S+)\s+(?P<hour>\S+)\s+(?P<dom>\S+)\s+(?P<month>\S+)\s+(?P<dow>\S+)\s+(?P<command>\S.*\S)\s*$`
+	CrontabCommentLineRegexPattern   = `^\s*#.*$`
+	CrontabCommentSuffixRegexPattern = `^\s*([^#]+)#.*$`
+	CrontabSubMatchLen               = 7
 
 	minute cronField = iota
 	hour
@@ -52,20 +40,21 @@ const (
 	dow
 )
 
+var (
+	crontabEntryRegex         = regexp.MustCompile(CrontabEntryRegexPattern)
+	crontabCommentLineRegex   = regexp.MustCompile(CrontabCommentLineRegexPattern)
+	crontabCommentSuffixRegex = regexp.MustCompile(CrontabCommentSuffixRegexPattern)
+)
+
 func readCrontab(path string) ([]*Cron, error) {
 	var (
 		file    *os.File
 		err     error
 		scanner *bufio.Scanner
 		line    string
-		re      *regexp.Regexp
 		parts   []string
 		retval  []*Cron
 	)
-
-	if re, err = regexp.Compile(CrontabEntryRegex); err != nil {
-		return nil, err
-	}
 
 	if file, err = os.Open(path); err != nil {
 		return nil, err
@@ -79,75 +68,53 @@ func readCrontab(path string) ([]*Cron, error) {
 	for scanner.Scan() {
 		line = scanner.Text()
 
-		parts = re.FindStringSubmatch(line)
-		if len(parts) != CrontabSubmatchLen {
+		if crontabCommentLineRegex.MatchString(line) {
+			continue
+		}
+
+		parts = crontabCommentSuffixRegex.FindStringSubmatch(line)
+		if len(parts) == 2 {
+			line = parts[1]
+		}
+
+		parts = crontabEntryRegex.FindStringSubmatch(line)
+		if len(parts) != CrontabSubMatchLen {
 			wingmate.Log().Error().Msgf("invalid entry %s", line)
 			continue
 		}
 
-		c := &Cron{
-			hasRun: false,
-		}
+		c := &Cron{}
 		if err = c.setField(minute, parts[1]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing minute field %+v", err)
+			wingmate.Log().Error().Msgf("error parsing Minute field %+v", err)
 			continue
 		}
 
 		if err = c.setField(hour, parts[2]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing hour field %+v", err)
+			wingmate.Log().Error().Msgf("error parsing Hour field %+v", err)
 			continue
 		}
 
 		if err = c.setField(dom, parts[3]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing day of month field %+v", err)
+			wingmate.Log().Error().Msgf("error parsing Day of Month field %+v", err)
 			continue
 		}
 
 		if err = c.setField(month, parts[4]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing month field %+v", err)
+			wingmate.Log().Error().Msgf("error parsing Month field %+v", err)
 			continue
 		}
 
 		if err = c.setField(dow, parts[5]); err != nil {
-			wingmate.Log().Error().Msgf("error parsing day of week field %+v", err)
+			wingmate.Log().Error().Msgf("error parsing Day of Week field %+v", err)
 			continue
 		}
 
-		c.command = parts[6]
+		c.Command = parts[6]
 
 		retval = append(retval, c)
 	}
 
 	return retval, nil
-}
-
-func (c *Cron) Command() string {
-	return c.command
-}
-
-func (c *Cron) TimeToRun(now time.Time) bool {
-	if c.minute.Match(uint8(now.Minute())) &&
-		c.hour.Match(uint8(now.Hour())) &&
-		c.dom.Match(uint8(now.Day())) &&
-		c.month.Match(uint8(now.Month())) &&
-		c.dow.Match(uint8(now.Weekday())) {
-
-		if c.hasRun {
-			if now.Sub(c.lastRun) <= time.Minute && now.Minute() == c.lastRun.Minute() {
-				return false
-			} else {
-				c.lastRun = now
-				return true
-			}
-		} else {
-
-			c.lastRun = now
-			c.hasRun = true
-			return true
-		}
-	}
-
-	return false
 }
 
 type fieldRange struct {
@@ -182,25 +149,25 @@ func (c *Cron) setField(field cronField, input string) error {
 	switch field {
 	case minute:
 		fr = newRange(0, 59)
-		cField = &c.minute
+		cField = &c.Minute
 	case hour:
 		fr = newRange(0, 23)
-		cField = &c.hour
+		cField = &c.Hour
 	case dom:
 		fr = newRange(1, 31)
-		cField = &c.dom
+		cField = &c.DoM
 	case month:
 		fr = newRange(1, 12)
-		cField = &c.month
+		cField = &c.Month
 	case dow:
 		fr = newRange(0, 6)
-		cField = &c.dow
+		cField = &c.DoW
 	default:
 		return errors.New("invalid cron field descriptor")
 	}
 
 	if input == "*" {
-		*cField = &specAny{}
+		*cField = &SpecAny{}
 	} else if strings.HasPrefix(input, "*/") {
 		if parsed64, err = strconv.ParseUint(input[2:], 10, 8); err != nil {
 			return fmt.Errorf("error parse field %+v with input %s: %w", field, input, err)
@@ -217,7 +184,7 @@ func (c *Cron) setField(field cronField, input string) error {
 			current += parsed
 		}
 
-		*cField = &specMultiOccurrence{
+		*cField = &SpecMultiOccurrence{
 			values: multi,
 		}
 	} else {
@@ -237,7 +204,7 @@ func (c *Cron) setField(field cronField, input string) error {
 				multi = append(multi, parsed)
 			}
 
-			*cField = &specMultiOccurrence{
+			*cField = &SpecMultiOccurrence{
 				values: multi,
 			}
 		} else {
@@ -250,7 +217,7 @@ func (c *Cron) setField(field cronField, input string) error {
 				return fmt.Errorf("error parse field %+v with input %s: invalid value", field, input)
 			}
 
-			*cField = &specExact{
+			*cField = &SpecExact{
 				value: parsed,
 			}
 		}
@@ -259,51 +226,21 @@ func (c *Cron) setField(field cronField, input string) error {
 	return nil
 }
 
-type specAny struct{}
+type SpecAny struct{}
 
-func (a *specAny) Type() wingmate.CronTimeType {
-	return wingmate.Any
-}
-
-func (a *specAny) Match(u uint8) bool {
-	return true
-}
-
-type specExact struct {
+type SpecExact struct {
 	value uint8
 }
 
-func (e *specExact) Type() wingmate.CronTimeType {
-	return wingmate.Exact
-}
-
-func (e *specExact) Match(u uint8) bool {
-	return u == e.value
-}
-
-func (e *specExact) Value() uint8 {
+func (e *SpecExact) Value() uint8 {
 	return e.value
 }
 
-type specMultiOccurrence struct {
+type SpecMultiOccurrence struct {
 	values []uint8
 }
 
-func (m *specMultiOccurrence) Type() wingmate.CronTimeType {
-	return wingmate.MultipleOccurrence
-}
-
-func (m *specMultiOccurrence) Match(u uint8) bool {
-	for _, v := range m.values {
-		if v == u {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (m *specMultiOccurrence) Values() []uint8 {
+func (m *SpecMultiOccurrence) Values() []uint8 {
 	out := make([]uint8, len(m.values))
 	copy(out, m.values)
 	return out

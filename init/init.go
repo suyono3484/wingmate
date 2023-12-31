@@ -6,18 +6,37 @@ import (
 	"time"
 )
 
-type Path interface {
-	Path() string
+type Tasks interface {
+	List() []Task
+	Services() []Task
+	Crones() []CronTask
+	Get(string) (Task, error)
 }
 
-type Cron interface {
-	Command() Path
+type UserGroup interface {
+}
+
+type TaskStatus interface {
+}
+
+type Task interface {
+	Name() string
+	Command() []string
+	Environ() []string
+	Setsid() bool
+	UserGroup() UserGroup
+	Background() bool
+	WorkingDir() string
+	Status() TaskStatus
+}
+
+type CronTask interface {
+	Task
 	TimeToRun(time.Time) bool
 }
 
 type Config interface {
-	Services() []Path
-	Cron() []Cron
+	Tasks() Tasks
 }
 
 type Init struct {
@@ -49,12 +68,12 @@ func (i *Init) Start() {
 	wg.Add(1)
 	go i.sighandler(wg, signalTrigger, sighandlerExit, sigchld)
 
-	for _, s := range i.config.Services() {
+	for _, s := range i.config.Tasks().Services() {
 		wg.Add(1)
 		go i.service(wg, s, signalTrigger)
 	}
 
-	for _, c := range i.config.Cron() {
+	for _, c := range i.config.Tasks().Crones() {
 		wg.Add(1)
 		go i.cron(wg, c, signalTrigger)
 	}

@@ -10,31 +10,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	serviceDir = "service"
+)
+
+var (
+	configDir string
+)
+
+func setup(t *testing.T) {
+	var err error
+	if configDir, err = os.MkdirTemp("", "wingmate-*-test"); err != nil {
+		t.Fatal("setup", err)
+	}
+	viper.Set(EnvConfigPath, configDir)
+}
+
+func tear(t *testing.T) {
+	if err := os.RemoveAll(configDir); err != nil {
+		t.Fatal("tear", err)
+	}
+}
+
 func TestRead(t *testing.T) {
 
 	type testEntry struct {
 		name     string
 		testFunc func(t *testing.T)
-	}
-
-	var (
-		configDir string
-		err       error
-	)
-
-	const serviceDir = "service"
-
-	setup := func(t *testing.T) {
-		if configDir, err = os.MkdirTemp("", "wingmate-*-test"); err != nil {
-			t.Fatal("setup", err)
-		}
-		viper.Set(EnvConfigPath, configDir)
-	}
-
-	tear := func(t *testing.T) {
-		if err = os.RemoveAll(configDir); err != nil {
-			t.Fatal("tear", err)
-		}
 	}
 
 	mkSvcDir := func(t *testing.T) {
