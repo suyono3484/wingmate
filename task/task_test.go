@@ -33,11 +33,11 @@ func TestCronV0(t *testing.T) {
 func TestTasks_List(t *testing.T) {
 	tasks := NewTasks()
 	tasks.services = []wminit.ServiceTask{
-		&Task{
+		&ServiceTask{
 			name:    "one",
 			command: []string{"/path/to/executable"},
 		},
-		&Task{
+		&ServiceTask{
 			name:    "two",
 			command: []string{"/path/to/executable"},
 		},

@@ -17,7 +17,7 @@ func NewTasks() *Tasks {
 }
 
 func (ts *Tasks) AddV0Service(path string) {
-	ts.services = append(ts.services, &Task{
+	ts.services = append(ts.services, &ServiceTask{
 		name:    path,
 		command: []string{path},
 	})
@@ -56,57 +56,57 @@ func (ts *Tasks) Get(name string) (wminit.Task, error) {
 	return nil, nil
 }
 
-type Task struct {
+type ServiceTask struct {
 	name    string
 	command []string
 }
 
-func (t *Task) Name() string {
+func (t *ServiceTask) Name() string {
 	return t.name
 }
 
-func (t *Task) Command() []string {
+func (t *ServiceTask) Command() []string {
 	retval := make([]string, len(t.command))
 	copy(retval, t.command)
 	return retval
 }
 
-func (t *Task) Environ() []string {
+func (t *ServiceTask) Environ() []string {
 	panic("not implemented")
 	return nil
 }
 
-func (t *Task) Setsid() bool {
+func (t *ServiceTask) Setsid() bool {
 	panic("not implemented")
 	return false
 }
 
-func (t *Task) UserGroup() wminit.UserGroup {
+func (t *ServiceTask) UserGroup() wminit.UserGroup {
 	panic("not implemented")
 	return nil
 }
 
-func (t *Task) Background() bool {
+func (t *ServiceTask) Background() bool {
 	panic("not implemented")
 	return false
 }
 
-func (t *Task) WorkingDir() string {
+func (t *ServiceTask) WorkingDir() string {
 	panic("not implemented")
 	return ""
 }
 
-func (t *Task) Status() wminit.TaskStatus {
+func (t *ServiceTask) Status() wminit.TaskStatus {
 	panic("not implemented")
 	return nil
 }
 
-func (t *Task) AutoStart() bool {
+func (t *ServiceTask) AutoStart() bool {
 	panic("not implemented")
 	return false
 }
 
-func (t *Task) AutoRestart() bool {
+func (t *ServiceTask) AutoRestart() bool {
 	panic("not implemented")
 	return false
 }

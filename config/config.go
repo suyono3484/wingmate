@@ -23,6 +23,36 @@ type Config struct {
 	Cron         []*Cron
 }
 
+type Task struct {
+	Command    []string `yaml:"command"`
+	Environ    []string `yaml:"environ"`
+	Setsid     bool     `yaml:"setsid"`
+	User       string   `yaml:"user"`
+	Group      string   `yaml:"group"`
+	Background bool     `yaml:"background"`
+	WorkingDir string   `yaml:"working_dir"`
+}
+
+type ServiceTask struct {
+	Task        `yaml:",inline"`
+	AutoStart   bool `yaml:"autostart"`
+	AutoRestart bool `yaml:"autorestart"`
+}
+
+type CronTask struct {
+	CronSchedule `yaml:"-"`
+	Task         `yaml:",inline"`
+	Schedule     string `yaml:"schedule"`
+}
+
+type CronSchedule struct {
+	Minute CronTimeSpec
+	Hour   CronTimeSpec
+	DoM    CronTimeSpec
+	Month  CronTimeSpec
+	DoW    CronTimeSpec
+}
+
 func Read() (*Config, error) {
 	viper.SetEnvPrefix(EnvPrefix)
 	viper.BindEnv(EnvConfigPath)
