@@ -5,13 +5,13 @@ import (
 )
 
 type Tasks struct {
-	services []wminit.Task
+	services []wminit.ServiceTask
 	crones   []wminit.CronTask
 }
 
 func NewTasks() *Tasks {
 	return &Tasks{
-		services: make([]wminit.Task, 0),
+		services: make([]wminit.ServiceTask, 0),
 		crones:   make([]wminit.CronTask, 0),
 	}
 }
@@ -28,15 +28,22 @@ func (ts *Tasks) AddV0Cron(schedule CronSchedule, path string) {
 		CronSchedule: schedule,
 		name:         path,
 		command:      []string{path},
+		hasRun:       false,
 	})
 }
 
 func (ts *Tasks) List() []wminit.Task {
-	panic("not implemented")
-	return nil
+	retval := make([]wminit.Task, 0, len(ts.services)+len(ts.crones))
+	for _, s := range ts.services {
+		retval = append(retval, s.(wminit.Task))
+	}
+	for _, c := range ts.crones {
+		retval = append(retval, c.(wminit.Task))
+	}
+	return retval
 }
 
-func (ts *Tasks) Services() []wminit.Task {
+func (ts *Tasks) Services() []wminit.ServiceTask {
 	return ts.services
 }
 
@@ -92,4 +99,14 @@ func (t *Task) WorkingDir() string {
 func (t *Task) Status() wminit.TaskStatus {
 	panic("not implemented")
 	return nil
+}
+
+func (t *Task) AutoStart() bool {
+	panic("not implemented")
+	return false
+}
+
+func (t *Task) AutoRestart() bool {
+	panic("not implemented")
+	return false
 }

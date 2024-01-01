@@ -8,7 +8,7 @@ import (
 
 type Tasks interface {
 	List() []Task
-	Services() []Task
+	Services() []ServiceTask
 	Crones() []CronTask
 	Get(string) (Task, error)
 }
@@ -25,7 +25,7 @@ type Task interface {
 	Environ() []string
 	Setsid() bool
 	UserGroup() UserGroup
-	Background() bool
+	Background() bool //NOTE: implies using wmpidproxy
 	WorkingDir() string
 	Status() TaskStatus
 }
@@ -33,6 +33,12 @@ type Task interface {
 type CronTask interface {
 	Task
 	TimeToRun(time.Time) bool
+}
+
+type ServiceTask interface {
+	Task
+	AutoStart() bool
+	AutoRestart() bool
 }
 
 type Config interface {
