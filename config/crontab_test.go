@@ -56,7 +56,7 @@ func TestCrontab(t *testing.T) {
 			}
 
 			t.Logf("cfg: %+v", cfg)
-			for _, c := range cfg.Cron {
+			for _, c := range cfg.CronV0 {
 				t.Logf("%+v", c)
 			}
 		})

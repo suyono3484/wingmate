@@ -11,38 +11,44 @@ import (
 )
 
 const (
-	EnvPrefix         = "WINGMATE"
-	EnvConfigPath     = "CONFIG_PATH"
-	DefaultConfigPath = "/etc/wingmate"
-	ServiceDirName    = "service"
-	CrontabFileName   = "crontab"
+	EnvPrefix                = "WINGMATE"
+	EnvConfigPath            = "CONFIG_PATH"
+	DefaultConfigPath        = "/etc/wingmate"
+	ServiceDirName           = "service"
+	CrontabFileName          = "crontab"
+	WingmateConfigFileName   = "wingmate"
+	WingmateConfigFileFormat = "yaml"
 )
 
 type Config struct {
-	ServicePaths []string
-	Cron         []*Cron
+	ServiceV0 []string
+	CronV0    []*Cron
+	Service   []ServiceTask
+	Cron      []CronTask
 }
 
 type Task struct {
-	Command    []string `yaml:"command"`
-	Environ    []string `yaml:"environ"`
-	Setsid     bool     `yaml:"setsid"`
-	User       string   `yaml:"user"`
-	Group      string   `yaml:"group"`
-	Background bool     `yaml:"background"`
-	WorkingDir string   `yaml:"working_dir"`
+	Command    []string `mapstructure:"command"`
+	Environ    []string `mapstructure:"environ"`
+	Setsid     bool     `mapstructure:"setsid"`
+	User       string   `mapstructure:"user"`
+	Group      string   `mapstructure:"group"`
+	Background bool     `mapstructure:"background"`
+	WorkingDir string   `mapstructure:"working_dir"`
 }
 
 type ServiceTask struct {
-	Task        `yaml:",inline"`
-	AutoStart   bool `yaml:"autostart"`
-	AutoRestart bool `yaml:"autorestart"`
+	Name        string `mapstructure:"-"`
+	Task        `mapstructure:",squash"`
+	AutoStart   bool `mapstructure:"autostart"`
+	AutoRestart bool `mapstructure:"autorestart"`
 }
 
 type CronTask struct {
-	CronSchedule `yaml:"-"`
-	Task         `yaml:",inline"`
-	Schedule     string `yaml:"schedule"`
+	Name         string `mapstructure:"-"`
+	CronSchedule `mapstructure:"-"`
+	Task         `mapstructure:",squash"`
+	Schedule     string `mapstructure:"schedule"`
 }
 
 type CronSchedule struct {
@@ -59,19 +65,22 @@ func Read() (*Config, error) {
 	viper.SetDefault(EnvConfigPath, DefaultConfigPath)
 
 	var (
-		dirent           []os.DirEntry
-		err              error
-		svcdir           string
-		serviceAvailable bool
-		cronAvailable    bool
-		cron             []*Cron
-		crontabfile      string
+		dirent                  []os.DirEntry
+		err                     error
+		svcdir                  string
+		serviceAvailable        bool
+		cronAvailable           bool
+		wingmateConfigAvailable bool
+		cron                    []*Cron
+		crontabfile             string
+		services                []ServiceTask
+		crones                  []CronTask
 	)
 
 	serviceAvailable = false
 	cronAvailable = false
 	outConfig := &Config{
-		ServicePaths: make([]string, 0),
+		ServiceV0: make([]string, 0),
 	}
 	configPath := viper.GetString(EnvConfigPath)
 	svcdir = filepath.Join(configPath, ServiceDirName)
@@ -82,7 +91,7 @@ func Read() (*Config, error) {
 				svcPath := filepath.Join(svcdir, d.Name())
 				if err = unix.Access(svcPath, unix.X_OK); err == nil {
 					serviceAvailable = true
-					outConfig.ServicePaths = append(outConfig.ServicePaths, svcPath)
+					outConfig.ServiceV0 = append(outConfig.ServiceV0, svcPath)
 				}
 			}
 		}
@@ -94,14 +103,27 @@ func Read() (*Config, error) {
 	crontabfile = filepath.Join(configPath, CrontabFileName)
 	cron, err = readCrontab(crontabfile)
 	if len(cron) > 0 {
-		outConfig.Cron = cron
+		outConfig.CronV0 = cron
 		cronAvailable = true
 	}
 	if err != nil {
 		wingmate.Log().Error().Msgf("encounter error when reading crontab %s: %+v", crontabfile, err)
 	}
 
-	if !serviceAvailable && !cronAvailable {
+	wingmateConfigAvailable = false
+	if services, crones, err = readConfigYaml(configPath, WingmateConfigFileName, WingmateConfigFileFormat); err != nil {
+		wingmate.Log().Error().Msgf("encounter error when reading wingmate config file in %s/%s: %+v", configPath, WingmateConfigFileName, err)
+	}
+	if len(services) > 0 {
+		outConfig.Service = services
+		wingmateConfigAvailable = true
+	}
+	if len(crones) > 0 {
+		outConfig.Cron = crones
+		wingmateConfigAvailable = true
+	}
+
+	if !serviceAvailable && !cronAvailable && !wingmateConfigAvailable {
 		return nil, errors.New("no config found")
 	}
 

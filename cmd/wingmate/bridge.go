@@ -19,13 +19,13 @@ func convert(cfg *config.Config) *wConfig {
 		tasks: task.NewTasks(),
 	}
 
-	for _, s := range cfg.ServicePaths {
+	for _, s := range cfg.ServiceV0 {
 		retval.tasks.AddV0Service(s)
 
 	}
 
 	var schedule task.CronSchedule
-	for _, c := range cfg.Cron {
+	for _, c := range cfg.CronV0 {
 		schedule.Minute = convertSchedule(c.Minute)
 		schedule.Hour = convertSchedule(c.Hour)
 		schedule.DoM = convertSchedule(c.DoM)

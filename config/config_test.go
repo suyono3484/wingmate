@@ -66,7 +66,7 @@ func TestRead(t *testing.T) {
 				assert.Nil(t, err)
 				assert.ElementsMatch(
 					t,
-					cfg.ServicePaths,
+					cfg.ServiceV0,
 					[]string{
 						path.Join(configDir, serviceDir, "one.sh"),
 						path.Join(configDir, serviceDir, "two.sh"),
@@ -86,7 +86,7 @@ func TestRead(t *testing.T) {
 				assert.Nil(t, err)
 				assert.ElementsMatch(
 					t,
-					cfg.ServicePaths,
+					cfg.ServiceV0,
 					[]string{
 						path.Join(configDir, serviceDir, "two.sh"),
 					},
@@ -104,7 +104,7 @@ func TestRead(t *testing.T) {
 				assert.Nil(t, err)
 				assert.ElementsMatch(
 					t,
-					cfg.ServicePaths,
+					cfg.ServiceV0,
 					[]string{
 						path.Join(configDir, serviceDir, "one.sh"),
 					},

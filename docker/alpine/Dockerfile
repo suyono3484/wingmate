@@ -3,7 +3,9 @@ FROM golang:1.21-alpine as builder
 ADD . /root/wingmate
 WORKDIR /root/wingmate/
 ARG TEST_BUILD
-RUN apk add make build-base && CGO_ENABLED=1 make all && make DESTDIR=/usr/local/bin/wingmate install
+RUN apk update && apk add git make build-base && \
+    CGO_ENABLED=1 make all && \
+    make DESTDIR=/usr/local/bin/wingmate install
 
 
 
