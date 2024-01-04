@@ -1,10 +1,11 @@
 package config
 
 import (
-	"gitea.suyono.dev/suyono/wingmate"
 	"os"
 	"path"
 	"testing"
+
+	"gitea.suyono.dev/suyono/wingmate"
 )
 
 const configName = "wingmate.yaml"
@@ -65,4 +66,14 @@ service:
         environ: ["ENV1=value1", "ENV2=valueX"]
         user: "user1"
         group: "999"
-        working_dir: "/path/to/working"`
+        working_dir: "/path/to/working"
+cron:
+    cron-one:
+        command:
+            - command-cron
+            - arg0
+            - arg1
+        environ: ["ENV1=v1", "ENV2=var2"]
+        user: "1001"
+        group: "978"
+        schedule: "*/5 * * * 2,3"`

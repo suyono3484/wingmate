@@ -49,5 +49,4 @@ func convertSchedule(cfg config.CronTimeSpec) task.CronTimeSpec {
 	}
 
 	panic("invalid conversion")
-	return nil
 }
