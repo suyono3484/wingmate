@@ -1,11 +1,12 @@
 package config
 
 import (
-	"gitea.suyono.dev/suyono/wingmate"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"gitea.suyono.dev/suyono/wingmate"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -96,11 +97,11 @@ const crontabTestCase3 = `a 13 3,5,7 * *  /path/to/executable
 */5 13 a * *  /path/to/executable
 */5 13 3,5,7 a *  /path/to/executable
 */5 13 3,5,7 * a  /path/to/executable
-*/x 13 3,5,7 * a  /path/to/executable
-76 13 3,5,7 * a  /path/to/executable
-*/75 13 3,5,7 * a  /path/to/executable
-*/5 13 3,x,7 * a  /path/to/executable
-*/5 13 3,5,67 * a  /path/to/executable
+*/x 13 3,5,7 * *  /path/to/executable
+76 13 3,5,7 * *  /path/to/executable
+*/75 13 3,5,7 * *  /path/to/executable
+*/5 13 3,x,7 * *  /path/to/executable
+*/5 13 3,5,67 * *  /path/to/executable
 */5 13 * *  /path/to/executable
 */5 13 3,5,7 * *  /path/to/executable`
 
