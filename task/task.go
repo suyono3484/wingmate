@@ -59,6 +59,9 @@ func (ts *Tasks) Get(name string) (wminit.Task, error) {
 type ServiceTask struct {
 	name    string
 	command []string
+	environ []string
+	setsid  bool
+	//TODO: user group
 }
 
 func (t *ServiceTask) Name() string {
