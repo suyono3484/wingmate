@@ -43,7 +43,7 @@ func TestTasks_List(t *testing.T) {
 		},
 	}
 	tasks.crones = []wminit.CronTask{
-		&Cron{
+		&CronTask{
 			CronSchedule: CronSchedule{
 				Minute: NewCronAnySpec(),
 				Hour:   NewCronAnySpec(),
@@ -54,7 +54,7 @@ func TestTasks_List(t *testing.T) {
 			name:    "cron-one",
 			command: []string{"/path/to/executable"},
 		},
-		&Cron{
+		&CronTask{
 			CronSchedule: CronSchedule{
 				Minute: NewCronAnySpec(),
 				Hour:   NewCronAnySpec(),

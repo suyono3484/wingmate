@@ -17,19 +17,21 @@ func NewTasks() *Tasks {
 }
 
 func (ts *Tasks) AddV0Service(path string) {
-	ts.services = append(ts.services, &ServiceTask{
-		name:    path,
-		command: []string{path},
-	})
+	ts.AddService(NewServiceTask(path)).SetCommand(path)
+}
+
+func (ts *Tasks) AddService(serviceTask *ServiceTask) *ServiceTask {
+	ts.services = append(ts.services, serviceTask)
+	return serviceTask
 }
 
 func (ts *Tasks) AddV0Cron(schedule CronSchedule, path string) {
-	ts.crones = append(ts.crones, &Cron{
-		CronSchedule: schedule,
-		name:         path,
-		command:      []string{path},
-		hasRun:       false,
-	})
+	ts.AddCron(NewCronTask(path)).SetCommand(path).SetSchedule(schedule)
+}
+
+func (ts *Tasks) AddCron(cronTask *CronTask) *CronTask {
+	ts.crones = append(ts.crones, cronTask)
+	return cronTask
 }
 
 func (ts *Tasks) List() []wminit.Task {
@@ -57,11 +59,57 @@ func (ts *Tasks) Get(name string) (wminit.Task, error) {
 }
 
 type ServiceTask struct {
-	name    string
-	command []string
-	environ []string
-	setsid  bool
-	//TODO: user group
+	name       string
+	command    []string
+	environ    []string
+	setsid     bool
+	user       string
+	group      string
+	background bool
+	workingDir string
+}
+
+func NewServiceTask(name string) *ServiceTask {
+	return &ServiceTask{
+		name: name,
+	}
+}
+
+func (t *ServiceTask) SetCommand(cmds ...string) *ServiceTask {
+	t.command = make([]string, len(cmds))
+	copy(t.command, cmds)
+	return t
+}
+
+func (t *ServiceTask) SetEnv(envs ...string) *ServiceTask {
+	t.environ = make([]string, len(envs))
+	copy(t.environ, envs)
+	return t
+}
+
+func (t *ServiceTask) SetFlagSetsid(flag bool) *ServiceTask {
+	t.setsid = flag
+	return t
+}
+
+func (t *ServiceTask) SetFlagBackground(flag bool) *ServiceTask {
+	t.background = flag
+	return t
+}
+
+func (t *ServiceTask) SetWorkingDir(path string) *ServiceTask {
+	t.workingDir = path
+	return t
+}
+
+func (t *ServiceTask) SetUser(user string) *ServiceTask {
+	t.user = user
+	return t
+}
+
+func (t *ServiceTask) SetGroup(group string) *ServiceTask {
+	t.group = group
+	return t
 }
 
 func (t *ServiceTask) Name() string {

@@ -66,55 +66,104 @@ func (cms *CronMultiOccurrenceSpec) Match(u uint8) bool {
 	return false
 }
 
-type Cron struct {
+type CronTask struct {
 	CronSchedule
-	name    string
-	command []string
-	lastRun time.Time
-	hasRun  bool //NOTE: make sure initialised as false
+	name       string
+	command    []string
+	environ    []string
+	setsid     bool
+	user       string
+	group      string
+	workingDir string
+	lastRun    time.Time
+	hasRun     bool //NOTE: make sure initialised as false
 }
 
-func (c *Cron) Name() string {
+func NewCronTask(name string) *CronTask {
+	return &CronTask{
+		name:   name,
+		hasRun: false,
+	}
+}
+
+func (c *CronTask) SetCommand(cmds ...string) *CronTask {
+	c.command = make([]string, len(cmds))
+	copy(c.command, cmds)
+	return c
+}
+
+func (c *CronTask) SetEnv(envs ...string) *CronTask {
+	c.environ = make([]string, len(envs))
+	copy(c.environ, envs)
+	return c
+}
+
+func (c *CronTask) SetFlagSetsid(flag bool) *CronTask {
+	c.setsid = flag
+	return c
+}
+
+func (c *CronTask) SetWorkingDir(path string) *CronTask {
+	c.workingDir = path
+	return c
+}
+
+func (c *CronTask) SetUser(user string) *CronTask {
+	c.user = user
+	return c
+}
+
+func (c *CronTask) SetGroup(group string) *CronTask {
+	c.group = group
+	return c
+}
+
+func (c *CronTask) SetSchedule(schedule CronSchedule) *CronTask {
+	c.CronSchedule = schedule
+	return c
+}
+
+func (c *CronTask) Name() string {
 	return c.name
 }
 
-func (c *Cron) Command() []string {
+func (c *CronTask) Command() []string {
 	retval := make([]string, len(c.command))
 	copy(retval, c.command)
 	return retval
 }
 
-func (c *Cron) Environ() []string {
+func (c *CronTask) Environ() []string {
 	panic("not implemented")
 	return nil
 }
 
-func (c *Cron) Setsid() bool {
+func (c *CronTask) Setsid() bool {
 	panic("not implemented")
 	return false
 }
 
-func (c *Cron) UserGroup() wminit.UserGroup {
+func (c *CronTask) UserGroup() wminit.UserGroup {
 	panic("not implemented")
 	return nil
 }
 
-func (c *Cron) Background() bool {
-	panic("not implemented")
+func (c *CronTask) Background() bool {
+	//NOTE: cron will always return false for this
 	return false
 }
 
-func (c *Cron) WorkingDir() string {
+func (c *CronTask) WorkingDir() string {
 	panic("not implemented")
 	return ""
 }
 
-func (c *Cron) Status() wminit.TaskStatus {
+func (c *CronTask) Status() wminit.TaskStatus {
 	panic("not implemented")
 	return nil
 }
 
-func (c *Cron) TimeToRun(now time.Time) bool {
+func (c *CronTask) TimeToRun(now time.Time) bool {
 	if c.Minute.Match(uint8(now.Minute())) &&
 		c.Hour.Match(uint8(now.Hour())) &&
 		c.DoM.Match(uint8(now.Day())) &&
