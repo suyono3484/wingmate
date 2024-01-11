@@ -67,6 +67,7 @@ type ServiceTask struct {
 	group      string
 	background bool
 	workingDir string
+	startSecs  uint
 }
 
 func NewServiceTask(name string) *ServiceTask {
@@ -109,6 +110,11 @@ func (t *ServiceTask) SetUser(user string) *ServiceTask {
 
 func (t *ServiceTask) SetGroup(group string) *ServiceTask {
 	t.group = group
+	return t
+}
+
+func (t *ServiceTask) SetStartSecs(secs uint) *ServiceTask {
+	t.startSecs = secs
 	return t
 }
 
@@ -160,4 +166,9 @@ func (t *ServiceTask) AutoStart() bool {
 func (t *ServiceTask) AutoRestart() bool {
 	panic("not implemented")
 	return false
+}
+
+func (t *ServiceTask) StartSecs() uint {
+	panic("not implemented")
+	return 0
 }

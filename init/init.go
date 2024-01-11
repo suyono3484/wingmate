@@ -25,7 +25,6 @@ type Task interface {
 	Environ() []string
 	Setsid() bool
 	UserGroup() UserGroup
-	Background() bool //NOTE: implies using wmpidproxy
 	WorkingDir() string
 	Status() TaskStatus
 }
@@ -37,6 +36,8 @@ type CronTask interface {
 
 type ServiceTask interface {
 	Task
+	Background() bool //NOTE: implies using wmpidproxy
+	StartSecs() uint
 	AutoStart() bool
 	AutoRestart() bool
 }

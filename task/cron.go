@@ -148,11 +148,6 @@ func (c *CronTask) UserGroup() wminit.UserGroup {
 	return nil
 }
 
-func (c *CronTask) Background() bool {
-	//NOTE: cron will always return false for this
-	return false
-}
-
 func (c *CronTask) WorkingDir() string {
 	panic("not implemented")
 	return ""
