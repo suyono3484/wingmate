@@ -1,11 +1,17 @@
 package main
 
 import (
+	_ "embed"
 	"os"
 
 	"gitea.suyono.dev/suyono/wingmate"
 	"gitea.suyono.dev/suyono/wingmate/config"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
+)
+
+var (
+	//go:embed version.txt
+	version string
 )
 
 func main() {

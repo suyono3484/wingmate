@@ -33,21 +33,23 @@ type Task struct {
 	Setsid     bool     `mapstructure:"setsid"`
 	User       string   `mapstructure:"user"`
 	Group      string   `mapstructure:"group"`
-	Background bool     `mapstructure:"background"`
 	WorkingDir string   `mapstructure:"working_dir"`
 }
 
 type ServiceTask struct {
-	Name        string `mapstructure:"-"`
 	Task        `mapstructure:",squash"`
-	AutoStart   bool `mapstructure:"autostart"`
-	AutoRestart bool `mapstructure:"autorestart"`
+	Name        string `mapstructure:"-"`
+	Background  bool   `mapstructure:"background"`
+	PidFile     string `mapstructure:"pidfile"`
+	StartSecs   uint   `mapstructure:"startsecs"`
+	AutoStart   bool   `mapstructure:"autostart"`
+	AutoRestart bool   `mapstructure:"autorestart"`
 }
 
 type CronTask struct {
-	Name         string `mapstructure:"-"`
 	CronSchedule `mapstructure:"-"`
 	Task         `mapstructure:",squash"`
+	Name         string `mapstructure:"-"`
 	Schedule     string `mapstructure:"schedule"`
 }
 

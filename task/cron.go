@@ -68,12 +68,11 @@ func (cms *CronMultiOccurrenceSpec) Match(u uint8) bool {
 
 type CronTask struct {
 	CronSchedule
+	userGroup
 	name       string
 	command    []string
 	environ    []string
 	setsid     bool
-	user       string
-	group      string
 	workingDir string
 	lastRun    time.Time
 	hasRun     bool //NOTE: make sure initialised as false
@@ -144,8 +143,7 @@ func (c *CronTask) Setsid() bool {
 }
 
 func (c *CronTask) UserGroup() wminit.UserGroup {
-	panic("not implemented")
-	return nil
+	return &(c.userGroup)
 }
 
 func (c *CronTask) WorkingDir() string {

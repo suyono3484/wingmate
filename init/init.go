@@ -14,6 +14,8 @@ type Tasks interface {
 }
 
 type UserGroup interface {
+	String() string
+	IsSet() bool
 }
 
 type TaskStatus interface {
@@ -37,6 +39,7 @@ type CronTask interface {
 type ServiceTask interface {
 	Task
 	Background() bool //NOTE: implies using wmpidproxy
+	PidFile() string  //NOTE: implies using wmpidproxy
 	StartSecs() uint
 	AutoStart() bool
 	AutoRestart() bool

@@ -1,6 +1,7 @@
 package task
 
 import (
+	"fmt"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 )
 
@@ -63,11 +64,10 @@ type ServiceTask struct {
 	command    []string
 	environ    []string
 	setsid     bool
-	user       string
-	group      string
 	background bool
 	workingDir string
 	startSecs  uint
+	userGroup
 }
 
 func NewServiceTask(name string) *ServiceTask {
@@ -139,8 +139,7 @@ func (t *ServiceTask) Setsid() bool {
 }
 
 func (t *ServiceTask) UserGroup() wminit.UserGroup {
-	panic("not implemented")
-	return nil
+	return &(t.userGroup)
 }
 
 func (t *ServiceTask) Background() bool {
@@ -171,4 +170,26 @@ func (t *ServiceTask) AutoRestart() bool {
 func (t *ServiceTask) StartSecs() uint {
 	panic("not implemented")
 	return 0
+}
+
+func (t *ServiceTask) PidFile() string {
+	panic("not implemented")
+	return ""
+}
+
+type userGroup struct {
+	user  string
+	group string
+}
+
+func (ug *userGroup) IsSet() bool {
+	return len(ug.user) > 0 || len(ug.group) > 0
+}
+
+func (ug *userGroup) String() string {
+	if len(ug.group) > 0 {
+		return fmt.Sprintf("%s:%s", ug.user, ug.group)
+	}
+
+	return ug.user
 }
