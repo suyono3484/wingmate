@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gitea.suyono.dev/suyono/wingmate"
+	"gitea.suyono.dev/suyono/wingmate/cmd/cli"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sys/unix"
@@ -18,6 +19,7 @@ import (
 type execApp struct {
 	childArgs []string
 	err       error
+	version   cli.Version
 }
 
 const (
@@ -36,25 +38,21 @@ var (
 
 func main() {
 	var (
-		selfArgs   []string
-		childArgs  []string
-		app        *execApp
-		rootCmd    *cobra.Command
-		versionCmd *cobra.Command
-		err        error
+		selfArgs  []string
+		childArgs []string
+		app       *execApp
+		rootCmd   *cobra.Command
+		err       error
 	)
 
-	app = &execApp{}
+	app = &execApp{
+		version: cli.Version(version),
+	}
 
 	rootCmd = &cobra.Command{
 		Use:          "wmexec",
 		SilenceUsage: true,
 		RunE:         app.execCmd,
-	}
-
-	versionCmd = &cobra.Command{
-		Use:  "version",
-		RunE: app.versionCmd,
 	}
 
 	rootCmd.PersistentFlags().BoolP(setsidFlag, "s", false, "set to true to run setsid() before exec")
@@ -63,8 +61,7 @@ func main() {
 	rootCmd.PersistentFlags().StringP(userFlag, "u", "", "\"user:[group]\"")
 	viper.BindPFlag(EnvUser, rootCmd.PersistentFlags().Lookup(userFlag))
 
-	rootCmd.PersistentFlags().Bool(versionFlag, false, "print version")
-	viper.BindPFlag(versionFlag, rootCmd.PersistentFlags().Lookup(versionFlag))
+	app.version.Flag(rootCmd)
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	viper.BindEnv(EnvUser)
@@ -72,11 +69,12 @@ func main() {
 	viper.SetDefault(EnvSetsid, false)
 	viper.SetDefault(EnvUser, "")
 
-	rootCmd.AddCommand(versionCmd)
+	app.version.Cmd(rootCmd)
 
-	selfArgs, childArgs, err = argSplit()
+	selfArgs, childArgs, err = cli.SplitArgs()
 	app.childArgs = childArgs
 	app.err = err
+
 	rootCmd.SetArgs(selfArgs)
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
@@ -84,51 +82,8 @@ func main() {
 	}
 }
 
-func argSplit() ([]string, []string, error) {
-	var (
-		i         int
-		arg       string
-		selfArgs  []string
-		childArgs []string
-	)
-	found := false
-	for i, arg = range os.Args {
-		if arg == "--" {
-			found = true
-			if i+1 == len(os.Args) {
-				return nil, nil, errors.New("invalid argument")
-			}
-
-			if len(os.Args[i+1:]) == 0 {
-				return nil, nil, errors.New("invalid argument")
-			}
-
-			selfArgs = os.Args[1:i]
-			childArgs = os.Args[i+1:]
-			break
-		}
-
-		if !found {
-			return nil, nil, errors.New("invalid argument")
-		}
-	}
-	return selfArgs, childArgs, nil
-}
-
-func (e *execApp) versionCmd(cmd *cobra.Command, args []string) error {
-	e.printVersion()
-	return nil
-}
-
-func (e *execApp) printVersion() {
-	fmt.Print(version)
-	os.Exit(0)
-}
-
 func (e *execApp) execCmd(cmd *cobra.Command, args []string) error {
-	if viper.GetBool(versionFlag) {
-		e.printVersion()
-	}
+	e.version.FlagHook()
 
 	if e.err != nil {
 		return e.err

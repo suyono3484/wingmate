@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"gitea.suyono.dev/suyono/wingmate/cmd/cli"
 	"log"
 	"os"
 	"os/exec"
@@ -15,7 +16,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sys/unix"
+
+	_ "embed"
 )
+
+type pidProxyApp struct {
+	childArgs []string
+	err       error
+	version   cli.Version
+}
 
 const (
 	pidFileFlag         = "pid-file"
@@ -24,21 +33,29 @@ const (
 )
 
 var (
-	rootCmd = &cobra.Command{
-		Use:  "wmpidproxy",
-		RunE: pidProxy,
-	}
 
-	childArgs []string
+	//go:embed version.txt
+	version string
 )
 
 func main() {
 	var (
-		i        int
-		arg      string
-		selfArgs []string
-		found    bool
+		selfArgs  []string
+		childArgs []string
+		err       error
+		app       *pidProxyApp
+		rootCmd   *cobra.Command
 	)
+
+	app = &pidProxyApp{
+		version: cli.Version(version),
+	}
+
+	rootCmd = &cobra.Command{
+		Use:          "wmpidproxy",
+		SilenceUsage: true,
+		RunE:         app.pidProxy,
+	}
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	viper.BindEnv(EnvStartSecs)
@@ -48,44 +65,29 @@ func main() {
 	rootCmd.MarkFlagRequired(pidFileFlag)
 	viper.BindPFlag(pidFileFlag, rootCmd.PersistentFlags().Lookup(pidFileFlag))
 
-	found = false
-	for i, arg = range os.Args {
-		if arg == "--" {
-			found = true
-			if len(os.Args) <= i+1 {
-				log.Println("invalid argument")
-				os.Exit(1)
-			}
-			selfArgs = os.Args[1:i]
-			childArgs = os.Args[i+1:]
-			break
-		}
-	}
-	if !found {
-		log.Println("invalid argument")
-		os.Exit(1)
-	}
+	app.version.Flag(rootCmd)
+	app.version.Cmd(rootCmd)
 
-	if len(childArgs) == 0 {
-		log.Println("invalid argument")
-		os.Exit(1)
-	}
+	selfArgs, childArgs, err = cli.SplitArgs()
+	app.childArgs = childArgs
+	app.err = err
 
 	rootCmd.SetArgs(selfArgs)
-
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 }
 
-func pidProxy(cmd *cobra.Command, args []string) error {
+func (p *pidProxyApp) pidProxy(cmd *cobra.Command, args []string) error {
+	p.version.FlagHook()
+
 	pidfile := viper.GetString(pidFileFlag)
-	log.Printf("%s %v", pidfile, childArgs)
-	if len(childArgs) > 1 {
-		go startProcess(childArgs[0], childArgs[1:]...)
+	log.Printf("%s %v", pidfile, p.childArgs)
+	if len(p.childArgs) > 1 {
+		go p.startProcess(p.childArgs[0], p.childArgs[1:]...)
 	} else {
-		go startProcess(childArgs[0])
+		go p.startProcess(p.childArgs[0])
 	}
 	initialWait := viper.GetInt(EnvStartSecs)
 	time.Sleep(time.Second * time.Duration(initialWait))
@@ -104,7 +106,7 @@ func pidProxy(cmd *cobra.Command, args []string) error {
 
 check:
 	for {
-		if pid, err = readPid(pidfile); err != nil {
+		if pid, err = p.readPid(pidfile); err != nil {
 			return err
 		}
 
@@ -115,7 +117,7 @@ check:
 		select {
 		case <-t.C:
 		case <-sc:
-			if pid, err = readPid(pidfile); err != nil {
+			if pid, err = p.readPid(pidfile); err != nil {
 				return err
 			}
 
@@ -128,7 +130,7 @@ check:
 	return nil
 }
 
-func readPid(pidFile string) (int, error) {
+func (p *pidProxyApp) readPid(pidFile string) (int, error) {
 	var (
 		file  *os.File
 		err   error
@@ -153,7 +155,7 @@ func readPid(pidFile string) (int, error) {
 	}
 }
 
-func startProcess(arg0 string, args ...string) {
+func (p *pidProxyApp) startProcess(arg0 string, args ...string) {
 	if err := exec.Command(arg0, args...).Run(); err != nil {
 		log.Println("exec:", err)
 		return
