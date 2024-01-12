@@ -133,13 +133,13 @@ func (c *CronTask) Command() []string {
 }
 
 func (c *CronTask) Environ() []string {
-	panic("not implemented")
-	return nil
+	retval := make([]string, len(c.environ))
+	copy(retval, c.environ)
+	return retval
 }
 
 func (c *CronTask) Setsid() bool {
-	panic("not implemented")
-	return false
+	return c.setsid
 }
 
 func (c *CronTask) UserGroup() wminit.UserGroup {
@@ -147,11 +147,11 @@ func (c *CronTask) UserGroup() wminit.UserGroup {
 }
 
 func (c *CronTask) WorkingDir() string {
-	panic("not implemented")
-	return ""
+	return c.workingDir
 }
 
 func (c *CronTask) Status() wminit.TaskStatus {
+	//TODO: implement me!
 	panic("not implemented")
 	return nil
 }

@@ -19,26 +19,47 @@ func convert(cfg *config.Config) *wConfig {
 		tasks: task.NewTasks(),
 	}
 
+	for _, s := range cfg.Service {
+		st := task.NewServiceTask(s.Name).SetCommand(s.Command...).SetEnv(s.Environ...)
+		st.SetFlagSetsid(s.Setsid).SetWorkingDir(s.WorkingDir)
+		st.SetUser(s.User).SetGroup(s.Group).SetStartSecs(s.StartSecs).SetPidFile(s.PidFile)
+		retval.tasks.AddService(st)
+	}
+
 	for _, s := range cfg.ServiceV0 {
 		retval.tasks.AddV0Service(s)
-
 	}
 
 	var schedule task.CronSchedule
 	for _, c := range cfg.CronV0 {
-		schedule.Minute = convertSchedule(c.Minute)
-		schedule.Hour = convertSchedule(c.Hour)
-		schedule.DoM = convertSchedule(c.DoM)
-		schedule.Month = convertSchedule(c.Month)
-		schedule.DoW = convertSchedule(c.DoW)
-
+		schedule = configToTaskCronSchedule(c.CronSchedule)
 		retval.tasks.AddV0Cron(schedule, c.Command)
+	}
+
+	for _, c := range cfg.Cron {
+		schedule = configToTaskCronSchedule(c.CronSchedule)
+
+		ct := task.NewCronTask(c.Name).SetCommand(c.Command...).SetEnv(c.Environ...)
+		ct.SetFlagSetsid(c.Setsid).SetWorkingDir(c.WorkingDir).SetUser(c.User).SetGroup(c.Group)
+		ct.SetSchedule(schedule)
+
+		retval.tasks.AddCron(ct)
 	}
 
 	return retval
 }
 
-func convertSchedule(cfg config.CronTimeSpec) task.CronTimeSpec {
+func configToTaskCronSchedule(cfgSchedule config.CronSchedule) (taskSchedule task.CronSchedule) {
+	taskSchedule.Minute = configToTaskCronTimeSpec(cfgSchedule.Minute)
+	taskSchedule.Hour = configToTaskCronTimeSpec(cfgSchedule.Hour)
+	taskSchedule.DoM = configToTaskCronTimeSpec(cfgSchedule.DoM)
+	taskSchedule.Month = configToTaskCronTimeSpec(cfgSchedule.Month)
+	taskSchedule.DoW = configToTaskCronTimeSpec(cfgSchedule.DoW)
+
+	return
+}
+
+func configToTaskCronTimeSpec(cfg config.CronTimeSpec) task.CronTimeSpec {
 	switch v := cfg.(type) {
 	case *config.SpecAny:
 		return task.NewCronAnySpec()

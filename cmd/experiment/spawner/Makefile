@@ -3,7 +3,7 @@ all:
 	go build -v
 
 clean:
-	rm version.txt
+	echo "dev" > version.txt
 	go clean -i -cache -testcache
 
 install:

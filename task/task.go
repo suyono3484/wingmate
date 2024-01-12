@@ -55,6 +55,7 @@ func (ts *Tasks) Crones() []wminit.CronTask {
 }
 
 func (ts *Tasks) Get(name string) (wminit.Task, error) {
+	//TODO: implement me!
 	panic("not implemented")
 	return nil, nil
 }
@@ -67,6 +68,7 @@ type ServiceTask struct {
 	background bool
 	workingDir string
 	startSecs  uint
+	pidFile    string
 	userGroup
 }
 
@@ -93,11 +95,6 @@ func (t *ServiceTask) SetFlagSetsid(flag bool) *ServiceTask {
 	return t
 }
 
-func (t *ServiceTask) SetFlagBackground(flag bool) *ServiceTask {
-	t.background = flag
-	return t
-}
-
 func (t *ServiceTask) SetWorkingDir(path string) *ServiceTask {
 	t.workingDir = path
 	return t
@@ -118,6 +115,16 @@ func (t *ServiceTask) SetStartSecs(secs uint) *ServiceTask {
 	return t
 }
 
+func (t *ServiceTask) SetPidFile(path string) *ServiceTask {
+	t.pidFile = path
+	if len(path) > 0 {
+		t.background = true
+	} else {
+		t.background = false
+	}
+	return t
+}
+
 func (t *ServiceTask) Name() string {
 	return t.name
 }
@@ -129,13 +136,13 @@ func (t *ServiceTask) Command() []string {
 }
 
 func (t *ServiceTask) Environ() []string {
-	panic("not implemented")
-	return nil
+	retval := make([]string, len(t.environ))
+	copy(retval, t.environ)
+	return retval
 }
 
 func (t *ServiceTask) Setsid() bool {
-	panic("not implemented")
-	return false
+	return t.setsid
 }
 
 func (t *ServiceTask) UserGroup() wminit.UserGroup {
@@ -143,38 +150,37 @@ func (t *ServiceTask) UserGroup() wminit.UserGroup {
 }
 
 func (t *ServiceTask) Background() bool {
-	panic("not implemented")
-	return false
+	return t.background
 }
 
 func (t *ServiceTask) WorkingDir() string {
-	panic("not implemented")
-	return ""
+	return t.workingDir
 }
 
 func (t *ServiceTask) Status() wminit.TaskStatus {
+	//TODO: implement me!
 	panic("not implemented")
 	return nil
 }
 
 func (t *ServiceTask) AutoStart() bool {
+	//TODO: implement me!
 	panic("not implemented")
 	return false
 }
 
 func (t *ServiceTask) AutoRestart() bool {
+	//TODO: implement me!
 	panic("not implemented")
 	return false
 }
 
 func (t *ServiceTask) StartSecs() uint {
-	panic("not implemented")
-	return 0
+	return t.startSecs
 }
 
 func (t *ServiceTask) PidFile() string {
-	panic("not implemented")
-	return ""
+	return t.pidFile
 }
 
 type userGroup struct {

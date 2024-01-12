@@ -17,11 +17,7 @@ type CronTimeSpec interface {
 }
 
 type Cron struct {
-	Minute  CronTimeSpec
-	Hour    CronTimeSpec
-	DoM     CronTimeSpec
-	Month   CronTimeSpec
-	DoW     CronTimeSpec
+	CronSchedule
 	Command string
 }
 
