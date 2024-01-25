@@ -21,6 +21,7 @@ func main() {
 	)
 
 	_ = wingmate.NewLog(os.Stderr)
+	config.SetVersion(version)
 	if cfg, err = config.Read(); err != nil {
 		wingmate.Log().Error().Msgf("failed to read config %#v", err)
 	}

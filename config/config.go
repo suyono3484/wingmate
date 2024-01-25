@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
@@ -18,6 +19,10 @@ const (
 	CrontabFileName          = "crontab"
 	WingmateConfigFileName   = "wingmate"
 	WingmateConfigFileFormat = "yaml"
+	WingmateVersion          = "APP_VERSION"
+	PidProxyPathConfig       = "pidproxy_path"
+	ExecPathConfig           = "exec_path"
+	versionTrimRightCutSet   = "\r\n "
 )
 
 type Config struct {
@@ -25,6 +30,7 @@ type Config struct {
 	CronV0    []*Cron
 	Service   []ServiceTask
 	Cron      []CronTask
+	FindUtils *FindUtils
 }
 
 type Task struct {
@@ -61,9 +67,17 @@ type CronSchedule struct {
 	DoW    CronTimeSpec
 }
 
+func SetVersion(version string) {
+	version = strings.TrimRight(version, versionTrimRightCutSet)
+	viper.Set(WingmateVersion, version)
+	wingmate.Log().Info().Msgf("starting wingmate version %s", version)
+}
+
 func Read() (*Config, error) {
 	viper.SetEnvPrefix(EnvPrefix)
 	viper.BindEnv(EnvConfigPath)
+	viper.BindEnv(PidProxyPathConfig)
+	viper.BindEnv(ExecPathConfig)
 	viper.SetDefault(EnvConfigPath, DefaultConfigPath)
 
 	var (
@@ -77,6 +91,7 @@ func Read() (*Config, error) {
 		crontabfile             string
 		services                []ServiceTask
 		crones                  []CronTask
+		findUtils               *FindUtils
 	)
 
 	serviceAvailable = false
@@ -113,8 +128,11 @@ func Read() (*Config, error) {
 	}
 
 	wingmateConfigAvailable = false
-	if services, crones, err = readConfigYaml(configPath, WingmateConfigFileName, WingmateConfigFileFormat); err != nil {
+	if services, crones, findUtils, err = readConfigYaml(configPath, WingmateConfigFileName, WingmateConfigFileFormat); err != nil {
 		wingmate.Log().Error().Msgf("encounter error when reading wingmate config file in %s/%s: %+v", configPath, WingmateConfigFileName, err)
+	}
+	if err == nil {
+		outConfig.FindUtils = findUtils
 	}
 	if len(services) > 0 {
 		outConfig.Service = services

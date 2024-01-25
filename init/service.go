@@ -14,7 +14,7 @@ const (
 	serviceTag = "service"
 )
 
-func (i *Init) service(wg *sync.WaitGroup, task Task, exitFlag <-chan any) {
+func (i *Init) service(wg *sync.WaitGroup, task ServiceTask, exitFlag <-chan any) {
 	defer wg.Done()
 
 	var (
