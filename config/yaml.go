@@ -24,7 +24,7 @@ var (
 	crontabScheduleRegex = regexp.MustCompile(CrontabScheduleRegexPattern)
 )
 
-func readConfigYaml(path, name, format string) ([]ServiceTask, []CronTask, *FindUtils, error) {
+func readConfigYaml(path, name, format string) ([]ServiceTask, []CronTask, error) {
 	var (
 		err         error
 		nameMap     map[string]any
@@ -34,7 +34,7 @@ func readConfigYaml(path, name, format string) ([]ServiceTask, []CronTask, *Find
 		item        any
 		services    []ServiceTask
 		crones      []CronTask
-		findUtils   *FindUtils
+		//findUtils   *FindUtils
 	)
 
 	viper.AddConfigPath(path)
@@ -42,10 +42,9 @@ func readConfigYaml(path, name, format string) ([]ServiceTask, []CronTask, *Find
 	viper.SetConfigName(name)
 
 	if err = viper.ReadInConfig(); err != nil {
-		return nil, nil, nil, fmt.Errorf("reading config in dir %s, file %s, format %s: %w", path, name, format, err)
+		return nil, nil, fmt.Errorf("reading config in dir %s, file %s, format %s: %w", path, name, format, err)
 	}
 
-	findUtils = startFindUtils()
 	services = make([]ServiceTask, 0)
 	nameMap = viper.GetStringMap(ServiceConfigGroup)
 	for itemName, item = range nameMap {
@@ -74,7 +73,7 @@ func readConfigYaml(path, name, format string) ([]ServiceTask, []CronTask, *Find
 		crones = append(crones, cronTask)
 	}
 
-	return services, crones, findUtils, nil
+	return services, crones, nil
 }
 
 func parseYamlSchedule(input string) (schedule CronSchedule, err error) {

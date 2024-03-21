@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
@@ -13,7 +14,7 @@ import (
 
 const (
 	EnvPrefix                = "WINGMATE"
-	EnvConfigPath            = "CONFIG_PATH"
+	ConfigPath               = "config_path"
 	DefaultConfigPath        = "/etc/wingmate"
 	ServiceDirName           = "service"
 	CrontabFileName          = "crontab"
@@ -21,8 +22,15 @@ const (
 	WingmateConfigFileFormat = "yaml"
 	WingmateVersion          = "APP_VERSION"
 	PidProxyPathConfig       = "pidproxy_path"
+	PidProxyPathDefault      = "wmpidproxy"
 	ExecPathConfig           = "exec_path"
+	ExecPathDefault          = "wmexec"
 	versionTrimRightCutSet   = "\r\n "
+	VersionFlag              = "version"
+	WMPidProxyPathFlag       = "pid-proxy"
+	WMExecPathFlag           = "exec"
+	ConfigPathFlag           = "config"
+	VersionCheckKey          = "check-version"
 )
 
 type Config struct {
@@ -30,7 +38,7 @@ type Config struct {
 	CronV0    []*Cron
 	Service   []ServiceTask
 	Cron      []CronTask
-	FindUtils *FindUtils
+	viperMtx  *sync.Mutex
 }
 
 type Task struct {
@@ -75,10 +83,14 @@ func SetVersion(version string) {
 
 func Read() (*Config, error) {
 	viper.SetEnvPrefix(EnvPrefix)
-	viper.BindEnv(EnvConfigPath)
-	viper.BindEnv(PidProxyPathConfig)
-	viper.BindEnv(ExecPathConfig)
-	viper.SetDefault(EnvConfigPath, DefaultConfigPath)
+	_ = viper.BindEnv(ConfigPath)
+	_ = viper.BindEnv(PidProxyPathConfig)
+	_ = viper.BindEnv(ExecPathConfig)
+	viper.SetDefault(ConfigPath, DefaultConfigPath)
+	viper.SetDefault(PidProxyPathConfig, PidProxyPathDefault)
+	viper.SetDefault(ExecPathConfig, ExecPathDefault)
+
+	ParseFlags()
 
 	var (
 		dirent                  []os.DirEntry
@@ -91,17 +103,20 @@ func Read() (*Config, error) {
 		crontabfile             string
 		services                []ServiceTask
 		crones                  []CronTask
-		findUtils               *FindUtils
 	)
 
 	serviceAvailable = false
 	cronAvailable = false
 	outConfig := &Config{
+		viperMtx:  &sync.Mutex{},
 		ServiceV0: make([]string, 0),
 	}
-	configPath := viper.GetString(EnvConfigPath)
+	configPath := viper.GetString(ConfigPath)
 	svcdir = filepath.Join(configPath, ServiceDirName)
 	dirent, err = os.ReadDir(svcdir)
+	if err != nil {
+		wingmate.Log().Error().Msgf("encounter error when reading service directory %s: %+v", svcdir, err)
+	}
 	if len(dirent) > 0 {
 		for _, d := range dirent {
 			if d.Type().IsRegular() {
@@ -109,12 +124,11 @@ func Read() (*Config, error) {
 				if err = unix.Access(svcPath, unix.X_OK); err == nil {
 					serviceAvailable = true
 					outConfig.ServiceV0 = append(outConfig.ServiceV0, svcPath)
+				} else {
+					wingmate.Log().Error().Msgf("checking executable access for %s: %+v", svcPath, err)
 				}
 			}
 		}
-	}
-	if err != nil {
-		wingmate.Log().Error().Msgf("encounter error when reading service directory %s: %+v", svcdir, err)
 	}
 
 	crontabfile = filepath.Join(configPath, CrontabFileName)
@@ -128,11 +142,8 @@ func Read() (*Config, error) {
 	}
 
 	wingmateConfigAvailable = false
-	if services, crones, findUtils, err = readConfigYaml(configPath, WingmateConfigFileName, WingmateConfigFileFormat); err != nil {
+	if services, crones, err = readConfigYaml(configPath, WingmateConfigFileName, WingmateConfigFileFormat); err != nil {
 		wingmate.Log().Error().Msgf("encounter error when reading wingmate config file in %s/%s: %+v", configPath, WingmateConfigFileName, err)
-	}
-	if err == nil {
-		outConfig.FindUtils = findUtils
 	}
 	if len(services) > 0 {
 		outConfig.Service = services
