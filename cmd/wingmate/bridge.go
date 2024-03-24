@@ -4,19 +4,43 @@ import (
 	"gitea.suyono.dev/suyono/wingmate/config"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 	"gitea.suyono.dev/suyono/wingmate/task"
+	"github.com/spf13/viper"
+	"sync"
 )
 
 type wConfig struct {
-	tasks *task.Tasks
+	tasks    *task.Tasks
+	config   *config.Config
+	viperMtx *sync.Mutex
 }
 
 func (c *wConfig) Tasks() wminit.Tasks {
 	return c.tasks
 }
 
+func (c *wConfig) WMPidProxyPath() string {
+	c.viperMtx.Lock()
+	defer c.viperMtx.Unlock()
+
+	return viper.GetString(config.PidProxyPathConfig)
+}
+
+func (c *wConfig) WMExecPath() string {
+	c.viperMtx.Lock()
+	defer c.viperMtx.Unlock()
+
+	return viper.GetString(config.ExecPathConfig)
+}
+
+func (c *wConfig) Reload() error {
+	return nil
+}
+
 func convert(cfg *config.Config) *wConfig {
 	retval := &wConfig{
-		tasks: task.NewTasks(),
+		tasks:    task.NewTasks(),
+		config:   cfg,
+		viperMtx: &sync.Mutex{},
 	}
 
 	for _, s := range cfg.Service {

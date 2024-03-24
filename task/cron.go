@@ -126,9 +126,18 @@ func (c *CronTask) Name() string {
 	return c.name
 }
 
-func (c *CronTask) Command() []string {
-	retval := make([]string, len(c.command))
-	copy(retval, c.command)
+func (c *CronTask) Command() string {
+	return c.command[0]
+}
+
+func (c *CronTask) Arguments() []string {
+	if len(c.command) == 1 {
+		return nil
+	}
+
+	retval := make([]string, len(c.command)-1)
+	copy(retval, c.command[1:])
+
 	return retval
 }
 

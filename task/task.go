@@ -125,13 +125,27 @@ func (t *ServiceTask) SetPidFile(path string) *ServiceTask {
 	return t
 }
 
+func (t *ServiceTask) Validate() error {
+	// call this function for validate the field
+	return validate( /* input the validators here */ )
+}
+
 func (t *ServiceTask) Name() string {
 	return t.name
 }
 
-func (t *ServiceTask) Command() []string {
-	retval := make([]string, len(t.command))
-	copy(retval, t.command)
+func (t *ServiceTask) Command() string {
+	return t.command[0]
+}
+
+func (t *ServiceTask) Arguments() []string {
+	if len(t.command) == 1 {
+		return nil
+	}
+
+	retval := make([]string, len(t.command)-1)
+	copy(retval, t.command[1:])
+
 	return retval
 }
 
@@ -198,4 +212,14 @@ func (ug *userGroup) String() string {
 	}
 
 	return ug.user
+}
+
+func validate(validators ...func() error) error {
+	var err error
+	for _, v := range validators {
+		if err = v(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

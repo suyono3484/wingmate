@@ -33,11 +33,7 @@ func (i *Init) service(wg *sync.WaitGroup, task ServiceTask, exitFlag <-chan any
 service:
 	for {
 		failStatus = false
-		if len(task.Command()) == 1 {
-			cmd = exec.Command(task.Command()[0])
-		} else {
-			cmd = exec.Command(task.Command()[0], task.Command()[1:]...)
-		}
+		cmd = exec.Command(task.Command(), task.Arguments()...)
 		iwg = &sync.WaitGroup{}
 
 		if stdout, err = cmd.StdoutPipe(); err != nil {

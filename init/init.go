@@ -23,7 +23,8 @@ type TaskStatus interface {
 
 type Task interface {
 	Name() string
-	Command() []string
+	Command() string
+	Arguments() []string
 	Environ() []string
 	Setsid() bool
 	UserGroup() UserGroup
@@ -47,6 +48,8 @@ type ServiceTask interface {
 
 type Config interface {
 	Tasks() Tasks
+	WMPidProxyPath() string
+	WMExecPath() string
 }
 
 type Init struct {

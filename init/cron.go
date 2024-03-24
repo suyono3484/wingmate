@@ -29,11 +29,7 @@ cron:
 	for {
 		if cron.TimeToRun(time.Now()) {
 			wingmate.Log().Info().Str(cronTag, cron.Name()).Msg("executing")
-			if len(cron.Command()) == 1 {
-				cmd = exec.Command(cron.Command()[0])
-			} else {
-				cmd = exec.Command(cron.Command()[0], cron.Command()[1:]...)
-			}
+			cmd = exec.Command(cron.Command(), cron.Arguments()...)
 			iwg = &sync.WaitGroup{}
 
 			if stdout, err = cmd.StdoutPipe(); err != nil {

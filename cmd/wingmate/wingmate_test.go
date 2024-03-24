@@ -14,7 +14,7 @@ func TestEntry_configPathEnv(t *testing.T) {
 }
 
 func TestEntry_configPathPFlag(t *testing.T) {
-	os.Args = []string{"wingmate", "--config", "/Volumes/Source/go/src/gitea.suyono.dev/suyono/wingmate/docker/bookworm/etc/wingmate"}
+	os.Args = []string{"wingmate", "--config", "/workspaces/wingmate/docker/bookworm-newconfig/etc/wingmate"}
 	main()
 }
 

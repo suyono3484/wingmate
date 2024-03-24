@@ -2,14 +2,12 @@ package config
 
 import (
 	"errors"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-
 	"gitea.suyono.dev/suyono/wingmate"
 	"github.com/spf13/viper"
 	"golang.org/x/sys/unix"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -38,7 +36,6 @@ type Config struct {
 	CronV0    []*Cron
 	Service   []ServiceTask
 	Cron      []CronTask
-	viperMtx  *sync.Mutex
 }
 
 type Task struct {
@@ -108,7 +105,6 @@ func Read() (*Config, error) {
 	serviceAvailable = false
 	cronAvailable = false
 	outConfig := &Config{
-		viperMtx:  &sync.Mutex{},
 		ServiceV0: make([]string, 0),
 	}
 	configPath := viper.GetString(ConfigPath)

@@ -1,0 +1,5 @@
+service:
+  one:
+    command: [ "/workspace/wingmate/cmd/experiment/starter/starter" ]
+    environ: [ "DUMMY_PATH=/workspace/wingmate/cmd/experiment/dummy/dummy" ]
+    

@@ -1,6 +1,6 @@
 {
   "name": "Golang Dev",
-  "image": "golang-dev:1.21-bookworm-user",
+  "image": "golang-dev:1.22-bookworm-user",
   "mounts": [
     {
       "source": "WingmateGoPath",
