@@ -1,8 +1,9 @@
 package task
 
 import (
-	wminit "gitea.suyono.dev/suyono/wingmate/init"
 	"time"
+
+	wminit "gitea.suyono.dev/suyono/wingmate/init"
 )
 
 type CronSchedule struct {
@@ -76,6 +77,7 @@ type CronTask struct {
 	workingDir string
 	lastRun    time.Time
 	hasRun     bool //NOTE: make sure initialised as false
+	config     config
 }
 
 func NewCronTask(name string) *CronTask {
@@ -119,6 +121,11 @@ func (c *CronTask) SetGroup(group string) *CronTask {
 
 func (c *CronTask) SetSchedule(schedule CronSchedule) *CronTask {
 	c.CronSchedule = schedule
+	return c
+}
+
+func (c *CronTask) SetConfig(config config) *CronTask {
+	c.config = config
 	return c
 }
 

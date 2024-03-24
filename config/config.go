@@ -2,12 +2,14 @@ package config
 
 import (
 	"errors"
-	"gitea.suyono.dev/suyono/wingmate"
-	"github.com/spf13/viper"
-	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"gitea.suyono.dev/suyono/wingmate"
+	"github.com/spf13/viper"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -36,6 +38,7 @@ type Config struct {
 	CronV0    []*Cron
 	Service   []ServiceTask
 	Cron      []CronTask
+	viperMtx  *sync.Mutex
 }
 
 type Task struct {
@@ -155,4 +158,18 @@ func Read() (*Config, error) {
 	}
 
 	return outConfig, nil
+}
+
+func (c *Config) WMPidProxyPath() string {
+	c.viperMtx.Lock()
+	defer c.viperMtx.Unlock()
+
+	return viper.GetString(PidProxyPathConfig)
+}
+
+func (c *Config) WMExecPath() string {
+	c.viperMtx.Lock()
+	defer c.viperMtx.Unlock()
+
+	return viper.GetString(ExecPathConfig)
 }

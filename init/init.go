@@ -48,8 +48,6 @@ type ServiceTask interface {
 
 type Config interface {
 	Tasks() Tasks
-	WMPidProxyPath() string
-	WMExecPath() string
 }
 
 type Init struct {

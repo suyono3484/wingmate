@@ -1,11 +1,11 @@
 package main
 
 import (
+	"sync"
+
 	"gitea.suyono.dev/suyono/wingmate/config"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 	"gitea.suyono.dev/suyono/wingmate/task"
-	"github.com/spf13/viper"
-	"sync"
 )
 
 type wConfig struct {
@@ -18,21 +18,8 @@ func (c *wConfig) Tasks() wminit.Tasks {
 	return c.tasks
 }
 
-func (c *wConfig) WMPidProxyPath() string {
-	c.viperMtx.Lock()
-	defer c.viperMtx.Unlock()
-
-	return viper.GetString(config.PidProxyPathConfig)
-}
-
-func (c *wConfig) WMExecPath() string {
-	c.viperMtx.Lock()
-	defer c.viperMtx.Unlock()
-
-	return viper.GetString(config.ExecPathConfig)
-}
-
 func (c *wConfig) Reload() error {
+	//NOTE: for future use when reloading is possible
 	return nil
 }
 
@@ -47,6 +34,7 @@ func convert(cfg *config.Config) *wConfig {
 		st := task.NewServiceTask(s.Name).SetCommand(s.Command...).SetEnv(s.Environ...)
 		st.SetFlagSetsid(s.Setsid).SetWorkingDir(s.WorkingDir)
 		st.SetUser(s.User).SetGroup(s.Group).SetStartSecs(s.StartSecs).SetPidFile(s.PidFile)
+		st.SetConfig(cfg)
 		retval.tasks.AddService(st)
 	}
 
@@ -66,6 +54,7 @@ func convert(cfg *config.Config) *wConfig {
 		ct := task.NewCronTask(c.Name).SetCommand(c.Command...).SetEnv(c.Environ...)
 		ct.SetFlagSetsid(c.Setsid).SetWorkingDir(c.WorkingDir).SetUser(c.User).SetGroup(c.Group)
 		ct.SetSchedule(schedule)
+		ct.SetConfig(cfg)
 
 		retval.tasks.AddCron(ct)
 	}

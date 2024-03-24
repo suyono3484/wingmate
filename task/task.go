@@ -2,8 +2,14 @@ package task
 
 import (
 	"fmt"
+
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 )
+
+type config interface {
+	WMPidProxyPath() string
+	WMExecPath() string
+}
 
 type Tasks struct {
 	services []wminit.ServiceTask
@@ -63,12 +69,14 @@ func (ts *Tasks) Get(name string) (wminit.Task, error) {
 type ServiceTask struct {
 	name       string
 	command    []string
+	cmdLine    []string
 	environ    []string
 	setsid     bool
 	background bool
 	workingDir string
 	startSecs  uint
 	pidFile    string
+	config     config
 	userGroup
 }
 
@@ -125,6 +133,11 @@ func (t *ServiceTask) SetPidFile(path string) *ServiceTask {
 	return t
 }
 
+func (t *ServiceTask) SetConfig(config config) *ServiceTask {
+	t.config = config
+	return t
+}
+
 func (t *ServiceTask) Validate() error {
 	// call this function for validate the field
 	return validate( /* input the validators here */ )
@@ -134,17 +147,48 @@ func (t *ServiceTask) Name() string {
 	return t.name
 }
 
+func (t *ServiceTask) prepareCommandLine() []string {
+	if len(t.cmdLine) > 0 {
+		return t.cmdLine
+	}
+
+	t.cmdLine = make([]string, 0)
+	if t.background {
+		t.cmdLine = append(t.cmdLine, t.config.WMPidProxyPath(), "--pid-file", t.pidFile, "--")
+	}
+
+	if t.setsid || t.UserGroup().IsSet() {
+		t.cmdLine = append(t.cmdLine, t.config.WMExecPath())
+
+		if t.setsid {
+			t.cmdLine = append(t.cmdLine, "--setsid")
+		}
+
+		if t.UserGroup().IsSet() {
+			t.cmdLine = append(t.cmdLine, "--user", t.UserGroup().String())
+		}
+
+		t.cmdLine = append(t.cmdLine, "--")
+	}
+
+	t.cmdLine = append(t.cmdLine, t.command...)
+
+	return t.cmdLine
+}
+
 func (t *ServiceTask) Command() string {
-	return t.command[0]
+	cl := t.prepareCommandLine()
+	return cl[0]
 }
 
 func (t *ServiceTask) Arguments() []string {
-	if len(t.command) == 1 {
+	cl := t.prepareCommandLine()
+	if len(cl) == 1 {
 		return nil
 	}
 
-	retval := make([]string, len(t.command)-1)
-	copy(retval, t.command[1:])
+	retval := make([]string, len(cl)-1)
+	copy(retval, cl[1:])
 
 	return retval
 }
