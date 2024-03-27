@@ -30,6 +30,7 @@ type Task interface {
 	UserGroup() UserGroup
 	WorkingDir() string
 	Status() TaskStatus
+	UtilDepCheck() error
 }
 
 type CronTask interface {

@@ -1,5 +1,8 @@
 service:
-  one:
-    command: [ "/workspace/wingmate/cmd/experiment/starter/starter" ]
-    environ: [ "DUMMY_PATH=/workspace/wingmate/cmd/experiment/dummy/dummy" ]
-    
+#  one:
+#    command: [ "wmstarter" ]
+#    environ: [ "DUMMY_PATH=/workspace/wingmate/cmd/experiment/dummy/dummy" ]
+
+  spawner:
+    command: [ "wmspawner" ]
+    user: "1200"

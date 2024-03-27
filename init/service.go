@@ -33,6 +33,11 @@ func (i *Init) service(wg *sync.WaitGroup, task ServiceTask, exitFlag <-chan any
 service:
 	for {
 		failStatus = false
+		if err = task.UtilDepCheck(); err != nil {
+			wingmate.Log().Error().Str(serviceTag, task.Name()).Msgf("%+v", err)
+			failStatus = true
+			goto fail
+		}
 		cmd = exec.Command(task.Command(), task.Arguments()...)
 		iwg = &sync.WaitGroup{}
 

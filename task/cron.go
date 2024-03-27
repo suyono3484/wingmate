@@ -1,6 +1,10 @@
 package task
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"gitea.suyono.dev/suyono/wingmate"
 	"time"
 
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
@@ -70,14 +74,16 @@ func (cms *CronMultiOccurrenceSpec) Match(u uint8) bool {
 type CronTask struct {
 	CronSchedule
 	userGroup
-	name       string
-	command    []string
-	environ    []string
-	setsid     bool
-	workingDir string
-	lastRun    time.Time
-	hasRun     bool //NOTE: make sure initialised as false
-	config     config
+	cronScheduleString string
+	name               string
+	command            []string
+	cmdLine            []string
+	environ            []string
+	setsid             bool
+	workingDir         string
+	lastRun            time.Time
+	hasRun             bool //NOTE: make sure initialised as false
+	config             config
 }
 
 func NewCronTask(name string) *CronTask {
@@ -119,7 +125,8 @@ func (c *CronTask) SetGroup(group string) *CronTask {
 	return c
 }
 
-func (c *CronTask) SetSchedule(schedule CronSchedule) *CronTask {
+func (c *CronTask) SetSchedule(scheduleStr string, schedule CronSchedule) *CronTask {
+	c.cronScheduleString = scheduleStr
 	c.CronSchedule = schedule
 	return c
 }
@@ -129,21 +136,104 @@ func (c *CronTask) SetConfig(config config) *CronTask {
 	return c
 }
 
+func (c *CronTask) Equals(another *CronTask) bool {
+	if another == nil {
+		return false
+	}
+
+	type toCompare struct {
+		Name       string
+		Command    string
+		Arguments  []string
+		Environ    []string
+		Setsid     bool
+		UserGroup  string
+		WorkingDir string
+		Schedule   string
+	}
+
+	cmpStruct := func(p *CronTask) ([]byte, error) {
+		s := &toCompare{
+			Name:       c.Name(),
+			Command:    c.Command(),
+			Arguments:  c.Arguments(),
+			Environ:    c.Environ(),
+			Setsid:     c.Setsid(),
+			UserGroup:  c.UserGroup().String(),
+			WorkingDir: c.WorkingDir(),
+			Schedule:   c.cronScheduleString,
+		}
+
+		return json.Marshal(s)
+	}
+
+	var (
+		err                error
+		ours, theirs       []byte
+		ourHash, theirHash [sha256.Size]byte
+	)
+
+	if ours, err = cmpStruct(c); err != nil {
+		wingmate.Log().Error().Msgf("cron task equals: %+v", err)
+		return false
+	}
+	ourHash = sha256.Sum256(ours)
+
+	if theirs, err = cmpStruct(another); err != nil {
+		wingmate.Log().Error().Msgf("cron task equals: %+v", err)
+		return false
+	}
+	theirHash = sha256.Sum256(theirs)
+
+	for i := 0; i < sha256.Size; i++ {
+		if ourHash[i] != theirHash[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (c *CronTask) Name() string {
 	return c.name
 }
 
+func (c *CronTask) UtilDepCheck() error {
+	c.cmdLine = make([]string, 0)
+	if c.setsid || c.UserGroup().IsSet() {
+		if err := c.config.WMExecCheckVersion(); err != nil {
+			return fmt.Errorf("utility dependency check: %w", err)
+		}
+
+		c.cmdLine = append(c.cmdLine, c.config.WMExecPath())
+
+		if c.setsid {
+			c.cmdLine = append(c.cmdLine, "--setsid")
+		}
+
+		if c.UserGroup().IsSet() {
+			c.cmdLine = append(c.cmdLine, "--user", c.UserGroup().String())
+		}
+
+		c.cmdLine = append(c.cmdLine, "--")
+	}
+
+	c.cmdLine = append(c.cmdLine, c.command...)
+
+	return nil
+}
+
 func (c *CronTask) Command() string {
-	return c.command[0]
+	return c.cmdLine[0]
 }
 
 func (c *CronTask) Arguments() []string {
-	if len(c.command) == 1 {
+	if len(c.cmdLine) == 1 {
 		return nil
 	}
 
-	retval := make([]string, len(c.command)-1)
-	copy(retval, c.command[1:])
+	retval := make([]string, len(c.cmdLine)-1)
+	copy(retval, c.cmdLine[1:])
 
 	return retval
 }

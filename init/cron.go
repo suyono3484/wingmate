@@ -29,6 +29,10 @@ cron:
 	for {
 		if cron.TimeToRun(time.Now()) {
 			wingmate.Log().Info().Str(cronTag, cron.Name()).Msg("executing")
+			if err = cron.UtilDepCheck(); err != nil {
+				wingmate.Log().Error().Str(cronTag, cron.Name()).Msgf("%+v", err)
+				goto fail
+			}
 			cmd = exec.Command(cron.Command(), cron.Arguments()...)
 			iwg = &sync.WaitGroup{}
 

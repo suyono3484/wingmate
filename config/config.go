@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,6 +109,7 @@ func Read() (*Config, error) {
 	serviceAvailable = false
 	cronAvailable = false
 	outConfig := &Config{
+		viperMtx:  &sync.Mutex{},
 		ServiceV0: make([]string, 0),
 	}
 	configPath := viper.GetString(ConfigPath)
@@ -160,6 +162,13 @@ func Read() (*Config, error) {
 	return outConfig, nil
 }
 
+func (c *Config) GetAppVersion() string {
+	c.viperMtx.Lock()
+	defer c.viperMtx.Unlock()
+
+	return viper.GetString(WingmateVersion)
+}
+
 func (c *Config) WMPidProxyPath() string {
 	c.viperMtx.Lock()
 	defer c.viperMtx.Unlock()
@@ -167,9 +176,46 @@ func (c *Config) WMPidProxyPath() string {
 	return viper.GetString(PidProxyPathConfig)
 }
 
+func (c *Config) WMPidProxyCheckVersion() error {
+	var (
+		binVersion string
+		appVersion string
+		err        error
+	)
+
+	if binVersion, err = getVersion(c.WMPidProxyPath()); err != nil {
+		return fmt.Errorf("get wmpidproxy version: %w", err)
+	}
+
+	appVersion = c.GetAppVersion()
+	if appVersion != binVersion {
+		return fmt.Errorf("wmpidproxy version mismatch")
+	}
+	return nil
+}
+
 func (c *Config) WMExecPath() string {
 	c.viperMtx.Lock()
 	defer c.viperMtx.Unlock()
 
 	return viper.GetString(ExecPathConfig)
+}
+
+func (c *Config) WMExecCheckVersion() error {
+	var (
+		binVersion string
+		appVersion string
+		err        error
+	)
+
+	if binVersion, err = getVersion(c.WMExecPath()); err != nil {
+		return fmt.Errorf("get wmexec version: %w", err)
+	}
+
+	appVersion = c.GetAppVersion()
+	if appVersion != binVersion {
+		return fmt.Errorf("wmexec version mismatch")
+	}
+
+	return nil
 }

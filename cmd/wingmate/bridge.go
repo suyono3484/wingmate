@@ -53,7 +53,7 @@ func convert(cfg *config.Config) *wConfig {
 
 		ct := task.NewCronTask(c.Name).SetCommand(c.Command...).SetEnv(c.Environ...)
 		ct.SetFlagSetsid(c.Setsid).SetWorkingDir(c.WorkingDir).SetUser(c.User).SetGroup(c.Group)
-		ct.SetSchedule(schedule)
+		ct.SetSchedule(c.Schedule, schedule)
 		ct.SetConfig(cfg)
 
 		retval.tasks.AddCron(ct)

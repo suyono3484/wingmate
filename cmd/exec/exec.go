@@ -71,7 +71,7 @@ func main() {
 
 	app.version.Cmd(rootCmd)
 
-	selfArgs, childArgs, err = cli.SplitArgs()
+	selfArgs, childArgs, err = cli.SplitArgs(os.Args)
 	app.childArgs = childArgs
 	app.err = err
 

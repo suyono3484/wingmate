@@ -1,14 +1,19 @@
 package task
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
+	"gitea.suyono.dev/suyono/wingmate"
 
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 )
 
 type config interface {
 	WMPidProxyPath() string
+	WMPidProxyCheckVersion() error
 	WMExecPath() string
+	WMExecCheckVersion() error
 }
 
 type Tasks struct {
@@ -33,7 +38,7 @@ func (ts *Tasks) AddService(serviceTask *ServiceTask) *ServiceTask {
 }
 
 func (ts *Tasks) AddV0Cron(schedule CronSchedule, path string) {
-	ts.AddCron(NewCronTask(path)).SetCommand(path).SetSchedule(schedule)
+	ts.AddCron(NewCronTask(path)).SetCommand(path).SetSchedule("", schedule)
 }
 
 func (ts *Tasks) AddCron(cronTask *CronTask) *CronTask {
@@ -138,6 +143,70 @@ func (t *ServiceTask) SetConfig(config config) *ServiceTask {
 	return t
 }
 
+func (t *ServiceTask) Equals(another *ServiceTask) bool {
+	if another == nil {
+		return false
+	}
+
+	type toCompare struct {
+		Name        string
+		Command     string
+		Arguments   []string
+		Environ     []string
+		Setsid      bool
+		UserGroup   string
+		WorkingDir  string
+		PidFile     string
+		StartSecs   uint
+		AutoStart   bool
+		AutoRestart bool
+	}
+
+	cmpStruct := func(p *ServiceTask) ([]byte, error) {
+		s := &toCompare{
+			Name:        p.Name(),
+			Command:     p.Command(),
+			Arguments:   p.Arguments(),
+			Environ:     p.Environ(),
+			Setsid:      p.Setsid(),
+			UserGroup:   p.UserGroup().String(),
+			WorkingDir:  p.WorkingDir(),
+			PidFile:     p.PidFile(),
+			StartSecs:   p.StartSecs(),
+			AutoStart:   p.AutoStart(),
+			AutoRestart: p.AutoRestart(),
+		}
+
+		return json.Marshal(s)
+	}
+
+	var (
+		err                error
+		ours, theirs       []byte
+		ourHash, theirHash [sha256.Size]byte
+	)
+
+	if ours, err = cmpStruct(t); err != nil {
+		wingmate.Log().Error().Msgf("task equals: %+v", err)
+		return false
+	}
+	ourHash = sha256.Sum256(ours)
+
+	if theirs, err = cmpStruct(another); err != nil {
+		wingmate.Log().Error().Msgf("task equals: %+v", err)
+		return false
+	}
+	theirHash = sha256.Sum256(theirs)
+
+	for i := 0; i < sha256.Size; i++ {
+		if ourHash[i] != theirHash[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (t *ServiceTask) Validate() error {
 	// call this function for validate the field
 	return validate( /* input the validators here */ )
@@ -176,19 +245,50 @@ func (t *ServiceTask) prepareCommandLine() []string {
 	return t.cmdLine
 }
 
+func (t *ServiceTask) UtilDepCheck() error {
+	t.cmdLine = make([]string, 0)
+	if t.background {
+		if err := t.config.WMPidProxyCheckVersion(); err != nil {
+			return fmt.Errorf("utility dependency check: %w", err)
+		}
+
+		t.cmdLine = append(t.cmdLine, t.config.WMPidProxyPath(), "--pid-file", t.pidFile, "--")
+	}
+
+	if t.setsid || t.UserGroup().IsSet() {
+		if err := t.config.WMExecCheckVersion(); err != nil {
+			return fmt.Errorf("utility dependency check: %w", err)
+		}
+
+		t.cmdLine = append(t.cmdLine, t.config.WMExecPath())
+
+		if t.setsid {
+			t.cmdLine = append(t.cmdLine, "--setsid")
+		}
+
+		if t.UserGroup().IsSet() {
+			t.cmdLine = append(t.cmdLine, "--user", t.UserGroup().String())
+		}
+
+		t.cmdLine = append(t.cmdLine, "--")
+	}
+
+	t.cmdLine = append(t.cmdLine, t.command...)
+
+	return nil
+}
+
 func (t *ServiceTask) Command() string {
-	cl := t.prepareCommandLine()
-	return cl[0]
+	return t.cmdLine[0]
 }
 
 func (t *ServiceTask) Arguments() []string {
-	cl := t.prepareCommandLine()
-	if len(cl) == 1 {
+	if len(t.cmdLine) == 1 {
 		return nil
 	}
 
-	retval := make([]string, len(cl)-1)
-	copy(retval, cl[1:])
+	retval := make([]string, len(t.cmdLine)-1)
+	copy(retval, t.cmdLine[1:])
 
 	return retval
 }
