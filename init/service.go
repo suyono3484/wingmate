@@ -69,9 +69,8 @@ service:
 
 		iwg.Wait()
 
-		if err = cmd.Wait(); err != nil {
-			wingmate.Log().Error().Str(serviceTag, task.Name()).Msgf("got error when waiting: %+v", err)
-		}
+		_ = cmd.Wait()
+
 	fail:
 		if failStatus {
 			time.Sleep(time.Second)

@@ -35,24 +35,26 @@ func main() {
 	)
 	if selfArgs, childArgs, err = cli.SplitArgs(os.Args); err == nil {
 		flagSet = pflag.NewFlagSet(selfArgs[0], pflag.ExitOnError)
-		flagSet.Bool(NoWaitFlag, false, "do not wait for the child process")
+		flagSet.Count(NoWaitFlag, "do not wait for the child process")
 		if err = flagSet.Parse(selfArgs[1:]); err != nil {
 			log.Printf("invalid argument: %+v", err)
 			return
 		}
 	} else {
 		flagSet = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
-		flagSet.Bool(NoWaitFlag, false, "do not wait for the child process")
-		if err = flagSet.Parse(selfArgs[1:]); err != nil {
+		flagSet.Count(NoWaitFlag, "do not wait for the child process")
+		if err = flagSet.Parse(os.Args[1:]); err != nil {
 			log.Printf("invalid argument: %+v", err)
 			return
 		}
 	}
-	viper.BindPFlag(NoWaitFlag, flagSet.Lookup(NoWaitFlag))
-	noWait = viper.GetBool(NoWaitFlag)
+	_ = viper.BindPFlag(NoWaitFlag, flagSet.Lookup(NoWaitFlag))
+	if viper.GetInt(NoWaitFlag) > 0 {
+		noWait = true
+	}
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
-	viper.BindEnv(EnvDummyPath)
+	_ = viper.BindEnv(EnvDummyPath)
 	viper.SetDefault(EnvDummyPath, DummyPath)
 
 	exePath = viper.GetString(EnvDummyPath)

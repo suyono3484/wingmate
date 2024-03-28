@@ -23,7 +23,7 @@ func SplitArgs(args []string) ([]string, []string, error) {
 				return nil, nil, errors.New("invalid argument")
 			}
 
-			selfArgs = args[1:i]
+			selfArgs = args[:i]
 			childArgs = args[i+1:]
 			break
 		}

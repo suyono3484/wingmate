@@ -58,21 +58,23 @@ func main() {
 	}
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
-	viper.BindEnv(EnvStartSecs)
+	_ = viper.BindEnv(EnvStartSecs)
 	viper.SetDefault(EnvStartSecs, EnvDefaultStartSecs)
 
 	rootCmd.PersistentFlags().StringP(pidFileFlag, "p", "", "location of pid file")
-	rootCmd.MarkFlagRequired(pidFileFlag)
-	viper.BindPFlag(pidFileFlag, rootCmd.PersistentFlags().Lookup(pidFileFlag))
+	_ = rootCmd.MarkFlagRequired(pidFileFlag)
+	_ = viper.BindPFlag(pidFileFlag, rootCmd.PersistentFlags().Lookup(pidFileFlag))
 
 	app.version.Flag(rootCmd)
 	app.version.Cmd(rootCmd)
 
-	selfArgs, childArgs, err = cli.SplitArgs(os.Args)
+	if selfArgs, childArgs, err = cli.SplitArgs(os.Args); err != nil {
+		selfArgs = os.Args
+	}
 	app.childArgs = childArgs
 	app.err = err
 
-	rootCmd.SetArgs(selfArgs)
+	rootCmd.SetArgs(selfArgs[1:])
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -111,7 +113,10 @@ check:
 		}
 
 		if err = unix.Kill(pid, syscall.Signal(0)); err != nil {
-			return err
+			if !errors.Is(err, unix.ESRCH) {
+				return err
+			}
+			break check
 		}
 
 		select {

@@ -63,9 +63,7 @@ cron:
 
 			iwg.Wait()
 
-			if err = cmd.Wait(); err != nil {
-				wingmate.Log().Error().Str(cronTag, cron.Name()).Msgf("got error when waiting: %+v", err)
-			}
+			_ = cmd.Wait()
 		}
 
 	fail:

@@ -6,3 +6,22 @@ service:
   spawner:
     command: [ "wmspawner" ]
     user: "1200"
+
+  bgtest:
+    command:
+      - "wmstarter"
+      - "--no-wait"
+      - "--"
+      - "wmexec"
+      - "--setsid"
+      - "--"
+      - "wmbg"
+      - "--name"
+      - "test-run"
+      - "--pause"
+      - "10"
+      - "--log-path"
+      - "/var/log/wmbg.log"
+      - "--pid-file"
+      - "/var/run/wmbg.pid"
+    pidfile: "/var/run/wmbg.pid"
