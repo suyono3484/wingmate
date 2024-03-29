@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+
 	"gitea.suyono.dev/suyono/wingmate"
 
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
@@ -291,6 +292,10 @@ func (t *ServiceTask) Arguments() []string {
 	copy(retval, t.cmdLine[1:])
 
 	return retval
+}
+
+func (t *ServiceTask) EnvLen() int {
+	return len(t.environ)
 }
 
 func (t *ServiceTask) Environ() []string {

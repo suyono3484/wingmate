@@ -2,6 +2,7 @@ package init
 
 import (
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -34,6 +35,15 @@ cron:
 				goto fail
 			}
 			cmd = exec.Command(cron.Command(), cron.Arguments()...)
+			cmd.Env = os.Environ()
+			if cron.EnvLen() > 0 {
+				cmd.Env = append(cmd.Env, cron.Environ()...)
+			}
+
+			if len(cron.WorkingDir()) > 0 {
+				cmd.Dir = cron.WorkingDir()
+			}
+
 			iwg = &sync.WaitGroup{}
 
 			if stdout, err = cmd.StdoutPipe(); err != nil {

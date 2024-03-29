@@ -4,8 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"gitea.suyono.dev/suyono/wingmate"
 	"time"
+
+	"gitea.suyono.dev/suyono/wingmate"
 
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
 )
@@ -154,14 +155,14 @@ func (c *CronTask) Equals(another *CronTask) bool {
 
 	cmpStruct := func(p *CronTask) ([]byte, error) {
 		s := &toCompare{
-			Name:       c.Name(),
-			Command:    c.Command(),
-			Arguments:  c.Arguments(),
-			Environ:    c.Environ(),
-			Setsid:     c.Setsid(),
-			UserGroup:  c.UserGroup().String(),
-			WorkingDir: c.WorkingDir(),
-			Schedule:   c.cronScheduleString,
+			Name:       p.Name(),
+			Command:    p.Command(),
+			Arguments:  p.Arguments(),
+			Environ:    p.Environ(),
+			Setsid:     p.Setsid(),
+			UserGroup:  p.UserGroup().String(),
+			WorkingDir: p.WorkingDir(),
+			Schedule:   p.cronScheduleString,
 		}
 
 		return json.Marshal(s)
@@ -236,6 +237,10 @@ func (c *CronTask) Arguments() []string {
 	copy(retval, c.cmdLine[1:])
 
 	return retval
+}
+
+func (c *CronTask) EnvLen() int {
+	return len(c.environ)
 }
 
 func (c *CronTask) Environ() []string {

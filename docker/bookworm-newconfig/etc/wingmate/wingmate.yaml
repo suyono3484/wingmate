@@ -25,3 +25,35 @@ service:
       - "--pid-file"
       - "/var/run/wmbg.pid"
     pidfile: "/var/run/wmbg.pid"
+
+cron:
+  cron1:
+    command:
+      - "wmoneshot"
+      - "--"
+      - "sleep"
+      - "5"
+    schedule: "*/5 * * * *"
+    environ:
+      - "WINGMATE_LOG=/var/log/cron1.log"
+      - "WINGMATE_LOG_MESSAGE=cron executed in minute 5,10,15,20,25,30,35,40,45,50,55"
+  cron2:
+    command:
+      - "wmoneshot"
+      - "--"
+      - "sleep"
+      - "5"
+    schedule: "17,42 */2 * * *"
+    environ:
+      - "WINGMATE_LOG=/var/log/cron2.log"
+      - "WINGMATE_LOG_MESSAGE=cron scheduled using 17,42 */2 * * *"
+  cron3:
+    command:
+      - "wmoneshot"
+      - "--"
+      - "sleep"
+      - "5"
+    schedule: "7,19,23,47 22 * * *"
+    environ:
+      - "WINGMATE_LOG=/var/log/cron3.log"
+      - "WINGMATE_LOG_MESSAGE=cron scheduled using 7,19,23,47 22 * * *"

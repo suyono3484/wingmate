@@ -25,6 +25,7 @@ type Task interface {
 	Name() string
 	Command() string
 	Arguments() []string
+	EnvLen() int
 	Environ() []string
 	Setsid() bool
 	UserGroup() UserGroup

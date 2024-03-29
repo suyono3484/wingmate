@@ -28,7 +28,7 @@ func main() {
 
 	t = time.NewTicker(time.Second * 5)
 	for {
-		cmd = exec.Command(exePath)
+		cmd = exec.Command(exePath, "--", "wmdummy")
 		if err = cmd.Run(); err != nil {
 			log.Printf("failed to run %s: %+v\n", exePath, err)
 		} else {

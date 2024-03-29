@@ -3,6 +3,7 @@ package init
 import (
 	"bufio"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -39,6 +40,15 @@ service:
 			goto fail
 		}
 		cmd = exec.Command(task.Command(), task.Arguments()...)
+		cmd.Env = os.Environ()
+		if task.EnvLen() > 0 {
+			cmd.Env = append(cmd.Env, task.Environ()...)
+		}
+
+		if len(task.WorkingDir()) > 0 {
+			cmd.Dir = task.WorkingDir()
+		}
+
 		iwg = &sync.WaitGroup{}
 
 		if stdout, err = cmd.StdoutPipe(); err != nil {
