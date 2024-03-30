@@ -7,6 +7,7 @@ import (
 	"gitea.suyono.dev/suyono/wingmate"
 	"gitea.suyono.dev/suyono/wingmate/config"
 	wminit "gitea.suyono.dev/suyono/wingmate/init"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -22,6 +23,10 @@ func main() {
 
 	_ = wingmate.NewLog(os.Stderr)
 	config.SetVersion(version)
+	config.ParseFlags()
+
+	wingmate.Log().Info().Msgf("starting wingmate version %s", viper.GetString(config.WingmateVersion))
+
 	if cfg, err = config.Read(); err != nil {
 		wingmate.Log().Error().Msgf("failed to read config %#v", err)
 	}

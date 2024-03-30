@@ -2,9 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 type Version string
@@ -27,12 +28,12 @@ func (v Version) Cmd(cmd *cobra.Command) {
 }
 
 func (v Version) Flag(cmd *cobra.Command) {
-	cmd.PersistentFlags().Bool(versionFlag, false, "print version")
+	cmd.PersistentFlags().Count(versionFlag, "print version")
 	_ = viper.BindPFlag(versionFlag, cmd.PersistentFlags().Lookup(versionFlag))
 }
 
 func (v Version) FlagHook() {
-	if viper.GetBool(versionFlag) {
+	if viper.GetInt(versionFlag) > 0 {
 		v.Print()
 	}
 }

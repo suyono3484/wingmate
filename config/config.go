@@ -79,7 +79,6 @@ type CronSchedule struct {
 func SetVersion(version string) {
 	version = strings.TrimRight(version, versionTrimRightCutSet)
 	viper.Set(WingmateVersion, version)
-	wingmate.Log().Info().Msgf("starting wingmate version %s", version)
 }
 
 func Read() (*Config, error) {
@@ -90,8 +89,6 @@ func Read() (*Config, error) {
 	viper.SetDefault(ConfigPath, DefaultConfigPath)
 	viper.SetDefault(PidProxyPathConfig, PidProxyPathDefault)
 	viper.SetDefault(ExecPathConfig, ExecPathDefault)
-
-	ParseFlags()
 
 	var (
 		dirent                  []os.DirEntry
