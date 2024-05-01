@@ -50,17 +50,32 @@ You can find some examples for shell script in [alpine docker](docker/alpine) an
 
 When `wingmate` binary starts, it will look for some files. By default, it will
 try to read the content of `/etc/wingmate` directory. You can change the directory
-where it reads by setting `WINGMATE_CONFIG_PATH` environment variable. The structure
-inside the config path should look like this.
+where it reads by setting `WINGMATE_CONFIG_PATH` environment variable. Wingmate supports 
+two format of configurations: yaml and shell script.
 
+### YAML configuration
+
+File structure:
+```shell
+/etc
+ └── wingmate
+     └── wingmate.yaml
+```
+Wingmate will parse the `wingmate.yaml` file and start services and crones based on the content
+of the yaml file. Please read [wingmate.yaml.md](wingmate.yaml.md) for details on
+the structure of yaml configuration file and some examples.
+
+### Shell script configuration
+
+Files and directories structure:
 ```shell
 /etc
  └── wingmate
      ├── crontab
      ├── crontab.d
-     │   ├── cron1.sh
-     │   ├── cron2.sh
-     │   └── cron3.sh
+     │   ├── cron1.sh
+     │   ├── cron2.sh
+     │   └── cron3.sh
      └── service
          ├── one.sh
          └── spawner.sh
@@ -85,9 +100,12 @@ common UNIX crontab file format. Something like this
  * * * * * <commad or shell script or binary>
 ```
 
-The command part only support simple command and arguments. Shell expression is not supported
-yet. It is recommended to write a shell script and put the path to shell script in
+The command part only support simple command and arguments. Shell expression is not supported.
+It is recommended to write a shell script and put the path to shell script in
 the command part.
+
+**Note: It is recommended to use the yaml format instead of shell script. In order to avoid less
+obvious mistake when writing shell script.**
 
 # Appendix
 ## Wingmate PID Proxy binary
