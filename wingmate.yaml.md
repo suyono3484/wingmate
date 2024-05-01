@@ -5,7 +5,7 @@ Table of content
 - [Service](#service)
   - [Command](#command)
   - [Environ](#environ)
-  - [User](#user-and-group)
+  - [User and Group](#user-and-group)
   - [Working Directory](#working-directory)
   - [setsid](#setsid)
   - [PID File](#pid-file)
@@ -70,7 +70,7 @@ At the top-level, there are two possible entries: Service and Cron.
 
 ## Service
 
-`service` is a top-level element that hosts the declaration of services to be started by `wingmate`.
+`service` is a top-level element that hosts the definition of services to be started by `wingmate`.
 
 Example
 ```yaml
@@ -151,5 +151,14 @@ background process PID in a file. This file is referred as PID file. Put the pat
 configuration depends on the [wmpidproxy](README.md#wingmate-pid-proxy-binary).
 
 ## Cron
+
+`cron` is a top-level element that hosts the definition of crones to run by `wingmate` on the specified schedule.
+Cron shares almost all configuration elements with Service, except `schedule` and `pidfile`. For the following
+elements, please refer to the Service section
+- [Command](#command)
+- [Environ](#environ)
+- [Working Directory](#working-directory)
+- [setsid](#setsid)
+- [User and Group](#user-and-group)
 
 ### Schedule
