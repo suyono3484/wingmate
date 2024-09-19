@@ -28,7 +28,8 @@ func (v Version) Cmd(cmd *cobra.Command) {
 }
 
 func (v Version) Flag(cmd *cobra.Command) {
-	cmd.PersistentFlags().Count(versionFlag, "print version")
+	viper.SetDefault(versionFlag, false)
+	cmd.PersistentFlags().Bool(versionFlag, false, "print version")
 	_ = viper.BindPFlag(versionFlag, cmd.PersistentFlags().Lookup(versionFlag))
 }
 

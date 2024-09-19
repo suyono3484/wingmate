@@ -12,12 +12,12 @@ func ParseFlags() {
 	pflag.CountP(VersionFlag, "v", "check version")
 	pflag.String(WMPidProxyPathFlag, "", "wmpidproxy path")
 	pflag.String(WMExecPathFlag, "", "wmexec path")
-	pflag.StringP(ConfigPathFlag, "c", "", "config path")
+	pflag.StringP(PathConfigFlag, "c", "", "config path")
 
 	pflag.Parse()
 
 	_ = viper.BindPFlag(VersionCheckKey, pflag.CommandLine.Lookup(VersionFlag))
-	_ = viper.BindPFlag(ConfigPath, pflag.CommandLine.Lookup(ConfigPathFlag))
+	_ = viper.BindPFlag(PathConfig, pflag.CommandLine.Lookup(PathConfigFlag))
 	_ = viper.BindPFlag(PidProxyPathConfig, pflag.CommandLine.Lookup(WMPidProxyPathFlag))
 	_ = viper.BindPFlag(ExecPathConfig, pflag.CommandLine.Lookup(WMExecPathFlag))
 

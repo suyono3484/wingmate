@@ -23,7 +23,7 @@ func setup(t *testing.T) {
 	if configDir, err = os.MkdirTemp("", "wingmate-*-test"); err != nil {
 		t.Fatal("setup", err)
 	}
-	viper.Set(ConfigPath, configDir)
+	viper.Set(PathConfig, configDir)
 }
 
 func tear(t *testing.T) {

@@ -15,7 +15,7 @@ import (
 
 const (
 	EnvPrefix                = "WINGMATE"
-	ConfigPath               = "config_path"
+	PathConfig               = "config_path"
 	DefaultConfigPath        = "/etc/wingmate"
 	ServiceDirName           = "service"
 	CrontabFileName          = "crontab"
@@ -30,7 +30,7 @@ const (
 	VersionFlag              = "version"
 	WMPidProxyPathFlag       = "pid-proxy"
 	WMExecPathFlag           = "exec"
-	ConfigPathFlag           = "config"
+	PathConfigFlag           = "config"
 	VersionCheckKey          = "check-version"
 )
 
@@ -83,10 +83,10 @@ func SetVersion(version string) {
 
 func Read() (*Config, error) {
 	viper.SetEnvPrefix(EnvPrefix)
-	_ = viper.BindEnv(ConfigPath)
+	_ = viper.BindEnv(PathConfig)
 	_ = viper.BindEnv(PidProxyPathConfig)
 	_ = viper.BindEnv(ExecPathConfig)
-	viper.SetDefault(ConfigPath, DefaultConfigPath)
+	viper.SetDefault(PathConfig, DefaultConfigPath)
 	viper.SetDefault(PidProxyPathConfig, PidProxyPathDefault)
 	viper.SetDefault(ExecPathConfig, ExecPathDefault)
 
@@ -109,7 +109,7 @@ func Read() (*Config, error) {
 		viperMtx:  &sync.Mutex{},
 		ServiceV0: make([]string, 0),
 	}
-	configPath := viper.GetString(ConfigPath)
+	configPath := viper.GetString(PathConfig)
 	svcdir = filepath.Join(configPath, ServiceDirName)
 	dirent, err = os.ReadDir(svcdir)
 	if err != nil {

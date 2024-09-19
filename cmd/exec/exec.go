@@ -23,11 +23,10 @@ type execApp struct {
 }
 
 const (
-	setsidFlag  = "setsid"
-	EnvSetsid   = "SETSID"
-	userFlag    = "user"
-	EnvUser     = "USER"
-	versionFlag = "version"
+	setsidFlag = "setsid"
+	EnvSetsid  = "SETSID"
+	userFlag   = "user"
+	EnvUser    = "USER"
 )
 
 var (
@@ -56,16 +55,16 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().BoolP(setsidFlag, "s", false, "set to true to run setsid() before exec")
-	viper.BindPFlag(EnvSetsid, rootCmd.PersistentFlags().Lookup(setsidFlag))
+	_ = viper.BindPFlag(EnvSetsid, rootCmd.PersistentFlags().Lookup(setsidFlag))
 
 	rootCmd.PersistentFlags().StringP(userFlag, "u", "", "\"user:[group]\"")
-	viper.BindPFlag(EnvUser, rootCmd.PersistentFlags().Lookup(userFlag))
+	_ = viper.BindPFlag(EnvUser, rootCmd.PersistentFlags().Lookup(userFlag))
 
 	app.version.Flag(rootCmd)
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
-	viper.BindEnv(EnvUser)
-	viper.BindEnv(EnvSetsid)
+	_ = viper.BindEnv(EnvUser)
+	_ = viper.BindEnv(EnvSetsid)
 	viper.SetDefault(EnvSetsid, false)
 	viper.SetDefault(EnvUser, "")
 
@@ -84,7 +83,7 @@ func main() {
 	}
 }
 
-func (e *execApp) execCmd(cmd *cobra.Command, args []string) error {
+func (e *execApp) execCmd(_ *cobra.Command, _ []string) error {
 	e.version.FlagHook()
 
 	if e.err != nil {
