@@ -2,27 +2,25 @@ package config
 
 import (
 	"fmt"
-	"os"
 
+	"gitea.suyono.dev/suyono/wingmate/cmd/cli"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func ParseFlags() {
-	pflag.CountP(VersionFlag, "v", "check version")
+	version := cli.Version(fmt.Sprintln(viper.GetString(WingmateVersion)))
+	version.FlagSet(pflag.CommandLine)
+
 	pflag.String(WMPidProxyPathFlag, "", "wmpidproxy path")
 	pflag.String(WMExecPathFlag, "", "wmexec path")
 	pflag.StringP(PathConfigFlag, "c", "", "config path")
 
 	pflag.Parse()
 
-	_ = viper.BindPFlag(VersionCheckKey, pflag.CommandLine.Lookup(VersionFlag))
 	_ = viper.BindPFlag(PathConfig, pflag.CommandLine.Lookup(PathConfigFlag))
 	_ = viper.BindPFlag(PidProxyPathConfig, pflag.CommandLine.Lookup(WMPidProxyPathFlag))
 	_ = viper.BindPFlag(ExecPathConfig, pflag.CommandLine.Lookup(WMExecPathFlag))
 
-	if viper.GetInt(VersionCheckKey) > 0 {
-		fmt.Println(viper.GetString(WingmateVersion))
-		os.Exit(0)
-	}
+	version.FlagHook()
 }

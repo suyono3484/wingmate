@@ -27,11 +27,9 @@ const (
 	ExecPathConfig           = "exec_path"
 	ExecPathDefault          = "wmexec"
 	versionTrimRightCutSet   = "\r\n "
-	VersionFlag              = "version"
 	WMPidProxyPathFlag       = "pid-proxy"
 	WMExecPathFlag           = "exec"
 	PathConfigFlag           = "config"
-	VersionCheckKey          = "check-version"
 )
 
 type Config struct {

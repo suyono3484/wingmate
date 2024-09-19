@@ -62,7 +62,6 @@ func main() {
 	_ = viper.BindPFlag(EnvUser, rootCmd.PersistentFlags().Lookup(userFlag))
 
 	app.version.Flag(rootCmd)
-	app.version.Cmd(rootCmd)
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	_ = viper.BindEnv(EnvUser)

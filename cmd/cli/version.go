@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -28,9 +29,13 @@ func (v Version) Cmd(cmd *cobra.Command) {
 }
 
 func (v Version) Flag(cmd *cobra.Command) {
+	v.FlagSet(cmd.PersistentFlags())
+}
+
+func (v Version) FlagSet(fs *pflag.FlagSet) {
 	viper.SetDefault(versionFlag, false)
-	cmd.PersistentFlags().Bool(versionFlag, false, "print version")
-	_ = viper.BindPFlag(versionFlag, cmd.PersistentFlags().Lookup(versionFlag))
+	fs.Bool(versionFlag, false, "print version")
+	_ = viper.BindPFlag(versionFlag, fs.Lookup(versionFlag))
 }
 
 func (v Version) FlagHook() {
