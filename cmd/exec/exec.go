@@ -4,16 +4,17 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"gitea.suyono.dev/suyono/wingmate"
-	"gitea.suyono.dev/suyono/wingmate/cmd/cli"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"gitea.suyono.dev/suyono/wingmate"
+	"gitea.suyono.dev/suyono/wingmate/cmd/cli"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/sys/unix"
 )
 
 type execApp struct {
@@ -61,6 +62,7 @@ func main() {
 	_ = viper.BindPFlag(EnvUser, rootCmd.PersistentFlags().Lookup(userFlag))
 
 	app.version.Flag(rootCmd)
+	app.version.Cmd(rootCmd)
 
 	viper.SetEnvPrefix(wingmate.EnvPrefix)
 	_ = viper.BindEnv(EnvUser)

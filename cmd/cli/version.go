@@ -34,7 +34,7 @@ func (v Version) Flag(cmd *cobra.Command) {
 }
 
 func (v Version) FlagHook() {
-	if viper.GetInt(versionFlag) > 0 {
+	if viper.GetBool(versionFlag) {
 		v.Print()
 	}
 }
