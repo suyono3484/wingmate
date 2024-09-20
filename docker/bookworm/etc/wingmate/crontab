@@ -1,3 +1,0 @@
-*/5 * * * * /etc/wingmate/crontab.d/cron1.sh
-17,42 */2 * * * /etc/wingmate/crontab.d/cron2.sh
-7,19,23,47 22 * * * /etc/wingmate/crontab.d/cron3.sh

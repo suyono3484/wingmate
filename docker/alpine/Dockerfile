@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine as builder
+FROM golang:1.22-alpine3.20 AS builder
 
 ADD . /root/wingmate
 WORKDIR /root/wingmate/
@@ -9,7 +9,7 @@ RUN apk update && apk add git make build-base && \
 
 
 
-FROM alpine:3.18
+FROM alpine:3.20
 
 RUN apk add tzdata && ln -s /usr/share/zoneinfo/Australia/Sydney /etc/localtime && \
     adduser -h /home/user1 -D -s /bin/sh user1 && \
