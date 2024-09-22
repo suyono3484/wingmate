@@ -28,7 +28,7 @@ func main() {
 	wingmate.Log().Info().Msgf("starting wingmate version %s", viper.GetString(config.WingmateVersion))
 
 	if cfg, err = config.Read(); err != nil {
-		wingmate.Log().Error().Msgf("failed to read config %#v", err)
+		wingmate.Log().Fatal().Err(err).Msg("failed to read config")
 	}
 
 	initCfg := convert(cfg)

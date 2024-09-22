@@ -154,11 +154,30 @@ configuration depends on the [wmpidproxy](README.md#wingmate-pid-proxy-binary).
 
 `cron` is a top-level element that hosts the definition of crones to run by `wingmate` on the specified schedule.
 Cron shares almost all configuration elements with Service, except `schedule` and `pidfile`. For the following
-elements, please refer to the Service section
+elements, please refer to the [Service](#service) section
+
 - [Command](#command)
 - [Environ](#environ)
 - [Working Directory](#working-directory)
 - [setsid](#setsid)
 - [User and Group](#user-and-group)
 
+`pidfile` is an invalid config parameter for cron because `wingmate` cannot start cron in background mode. This
+limitation is intentionally built into `wingmate` because it doesn't make any sense to run a periodic cron process
+in background.
+
 ### Schedule
+
+The schedule configuration field uses a format similar to the one described in the [README.md](README.md).
+
+```shell
+ ┌───────────── minute (0–59)
+ │ ┌───────────── hour (0–23)
+ │ │ ┌───────────── day of the month (1–31)
+ │ │ │ ┌───────────── month (1–12)
+ │ │ │ │ ┌───────────── day of the week (0–6) (Sunday to Saturday)
+ │ │ │ │ │ 
+ │ │ │ │ │
+ │ │ │ │ │
+ * * * * *
+```

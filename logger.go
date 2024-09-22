@@ -46,6 +46,10 @@ func (w *wrapper) Error() logger.Content {
 	return (*eventWrapper)(w.log.Error().Time(timeTag, time.Now()))
 }
 
+func (w *wrapper) Fatal() logger.Content {
+	return (*eventWrapper)(w.log.Fatal().Time(timeTag, time.Now()))
+}
+
 type eventWrapper zerolog.Event
 
 func (w *eventWrapper) Msg(msg string) {
@@ -58,5 +62,10 @@ func (w *eventWrapper) Msgf(format string, data ...any) {
 
 func (w *eventWrapper) Str(key, value string) logger.Content {
 	rv := (*zerolog.Event)(w).Str(key, value)
+	return (*eventWrapper)(rv)
+}
+
+func (w *eventWrapper) Err(err error) logger.Content {
+	rv := (*zerolog.Event)(w).Err(err)
 	return (*eventWrapper)(rv)
 }
